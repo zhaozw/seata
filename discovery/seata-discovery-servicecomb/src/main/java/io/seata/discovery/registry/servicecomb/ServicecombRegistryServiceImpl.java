@@ -17,9 +17,11 @@ package io.seata.discovery.registry.servicecomb;
 
 import com.google.common.eventbus.Subscribe;
 import io.seata.common.util.NetUtil;
+import io.seata.common.util.StringUtils;
 import io.seata.config.Configuration;
 import io.seata.config.ConfigurationFactory;
 import io.seata.discovery.registry.RegistryService;
+import io.seata.discovery.registry.servicecomb.client.CommonConfiguration;
 import io.seata.discovery.registry.servicecomb.client.EventManager;
 import io.seata.discovery.registry.servicecomb.client.ServicecombRegistryHelper;
 import org.apache.servicecomb.service.center.client.*;
@@ -47,12 +49,13 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
     private static volatile ServicecombRegistryHelper ServicecombRegistryHelper;
 
     private boolean isServer=false;
-    
-    private Environment environment = new Environment(FILE_CONFIG);
+
+    private Properties properties;
 
     private ServicecombRegistryServiceImpl() {
         EventManager.addEventBusClass("com.huaweicloud.common.event.EventManager");
-        ServicecombRegistryHelper=new ServicecombRegistryHelper(environment);
+        properties = createProperties();
+        ServicecombRegistryHelper=new ServicecombRegistryHelper(properties);
         EventManager.register(this);
     }
 
@@ -148,7 +151,7 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
                         MicroservicesResponse microservicesResponse = client.getMicroserviceList();
                         microservicesResponse.getServices().forEach(service -> {
                             // 先不考虑运行 crossAPP 的场景， 只允许同应用发现
-                            if (service.getAppId().equals(environment.getProperty(KEY_SERVICE_APPLICATION, "default"))&&service.getServiceName().equals(clusterName)) {
+                            if (service.getAppId().equals(properties.getProperty(KEY_SERVICE_APPLICATION, "default"))&&service.getServiceName().equals(clusterName)) {
 
                                 MicroserviceInstancesResponse instancesResponse = client
                                         .getMicroserviceInstanceList(service.getServiceId());
@@ -200,5 +203,118 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
             });
             CURRENT_ADDRESS_MAP.put(event.getAppName(),newAddressList);
         }
+    }
+
+    private Properties createProperties() {
+        Properties properties = new Properties();
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_PROJECT))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SERVICE_PROJECT,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_PROJECT));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_ENABLED))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_AK_SK_ENABLED,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_ENABLED));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SERVICE_APPLICATION,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_NAME))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SERVICE_NAME,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_NAME));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_VERSION))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SERVICE_VERSION,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_VERSION));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_ENVIRONMENT))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SERVICE_ENVIRONMENT,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_ENVIRONMENT));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_ENABLED))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_ENABLED,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_ENABLED));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_ENGINE))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_ENGINE,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_ENGINE));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_PROTOCOLS))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_PROTOCOLS,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_PROTOCOLS));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CIPHERS))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_CIPHERS,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CIPHERS));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_AUTH_PEER))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_AUTH_PEER,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_AUTH_PEER));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_HOST))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_CHECKCN_HOST,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_HOST));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_WHITE))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_CHECKCN_WHITE,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_WHITE));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_WHITE_FILE))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_CHECKCN_WHITE_FILE,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_WHITE_FILE));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_ALLOW_RENEGOTIATE))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_ALLOW_RENEGOTIATE,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_ALLOW_RENEGOTIATE));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_STORE_PATH))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_STORE_PATH,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_STORE_PATH));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_KEYSTORE,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE_TYPE))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_KEYSTORE_TYPE,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE_TYPE));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE_VALUE))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_KEYSTORE_VALUE,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE_VALUE));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_TRUST_STORE,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE_TYPE))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_TRUST_STORE_TYPE,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE_TYPE));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE_VALUE))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_TRUST_STORE_VALUE,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE_VALUE));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CRL))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_CRL,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CRL));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_SSL_CUSTOM_CLASS))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_SSL_SSL_CUSTOM_CLASS,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_SSL_CUSTOM_CLASS));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_ACCESS_KEY))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_AK_SK_ACCESS_KEY,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_ACCESS_KEY));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_SECRET_KEY))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_AK_SK_SECRET_KEY,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_SECRET_KEY));
+        }
+        if(!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_CIPHER))){
+            properties.setProperty(CommonConfiguration
+                    .KEY_AK_SK_CIPHER,FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_CIPHER));
+        }
+        return properties;
     }
 }

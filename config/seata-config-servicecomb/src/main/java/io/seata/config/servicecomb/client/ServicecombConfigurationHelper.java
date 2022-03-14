@@ -46,9 +46,9 @@ public class ServicecombConfigurationHelper {
 
     private ConfigConverter configConverter;
 
-    private EnvironmentAdapter environment;
+    private Properties environment;
 
-    public ServicecombConfigurationHelper(EnvironmentAdapter environment){
+    public ServicecombConfigurationHelper(Properties environment){
 
 
         this.environment = environment;
@@ -72,7 +72,7 @@ public class ServicecombConfigurationHelper {
          return configConverter;
      }
 
-    private void addConfigCenterProperties(EnvironmentAdapter ce) {
+    private void addConfigCenterProperties(Properties ce) {
         isKie = ce.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESSTYPE, "kie").equals("kie");
         RequestConfig.Builder config = HttpTransportFactory.defaultRequestConfig();
 
@@ -91,7 +91,7 @@ public class ServicecombConfigurationHelper {
     }
 
 
-    private void configCenterClient(EnvironmentAdapter ce) {
+    private void configCenterClient(Properties ce) {
         QueryConfigurationsRequest queryConfigurationsRequest = configCenterConfiguration.createQueryConfigurationsRequest();
         AddressManager addressManager = configCenterConfiguration.createAddressManager();
         if (addressManager == null) {
@@ -115,7 +115,7 @@ public class ServicecombConfigurationHelper {
     }
 
     //use KIE as config center
-    private void configKieClient(EnvironmentAdapter ce) {
+    private void configKieClient(Properties ce) {
 
         kieConfiguration = kieConfigConfiguration.createKieConfiguration();
 

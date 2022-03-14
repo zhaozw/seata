@@ -23,13 +23,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Properties;
 
 public class ConfigCenterConfiguration {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConfigCenterConfiguration.class);
 
-  private EnvironmentAdapter environment;
+  private Properties environment;
 
-  public ConfigCenterConfiguration(EnvironmentAdapter environment) {
+  public ConfigCenterConfiguration(Properties environment) {
     this.environment = environment;
   }
 

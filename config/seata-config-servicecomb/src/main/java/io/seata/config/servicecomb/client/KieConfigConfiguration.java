@@ -23,14 +23,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Properties;
 
 
 public class KieConfigConfiguration {
   private static final Logger LOGGER = LoggerFactory.getLogger(KieConfigConfiguration.class);
 
-  private EnvironmentAdapter environment;
+  private Properties environment;
 
-  public KieConfigConfiguration(EnvironmentAdapter environment) {
+  public KieConfigConfiguration(Properties environment) {
     this.environment = environment;
   }
 

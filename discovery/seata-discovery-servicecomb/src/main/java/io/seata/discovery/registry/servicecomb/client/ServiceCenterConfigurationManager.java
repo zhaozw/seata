@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Properties;
 
 import static io.seata.discovery.registry.servicecomb.client.CommonConfiguration.KEY_INSTANCE_ENVIRONMENT;
 import static io.seata.discovery.registry.servicecomb.client.CommonConfiguration.KEY_INSTANCE_HEALTH_CHECK_INTERVAL;
@@ -38,9 +39,9 @@ public class ServiceCenterConfigurationManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCenterConfigurationManager.class);
 
-  private EnvironmentAdapter environment;
+  private Properties environment;
 
-  public ServiceCenterConfigurationManager(EnvironmentAdapter environment) {
+  public ServiceCenterConfigurationManager(Properties environment) {
     this.environment = environment;
   }
 

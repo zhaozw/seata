@@ -11,6 +11,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * 这个类主要是把Servicecomb 注册中心的细节单独出来
@@ -25,7 +26,7 @@ public class ServicecombRegistryHelper {
 
     private ServiceCenterWatch watch;
 
-    private EnvironmentAdapter environment;
+    private Properties environment;
 
     private ServiceCenterConfigurationManager serviceCenterConfigurationManager;
 
@@ -35,7 +36,7 @@ public class ServicecombRegistryHelper {
 
     private boolean enableDiscovery=true;
 
-    public ServicecombRegistryHelper(EnvironmentAdapter environment) {
+    public ServicecombRegistryHelper(Properties environment) {
         this.environment=environment;
         serviceCenterConfigurationManager=new ServiceCenterConfigurationManager(environment);
         //commonConfiguration = new CommonConfiguration(environment);;

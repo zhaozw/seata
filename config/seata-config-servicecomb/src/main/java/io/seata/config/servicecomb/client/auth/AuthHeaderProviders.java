@@ -18,7 +18,6 @@
 package io.seata.config.servicecomb.client.auth;
 
 import io.seata.config.servicecomb.client.CommonConfiguration;
-import io.seata.config.servicecomb.client.EnvironmentAdapter;
 import io.seata.config.servicecomb.client.StringUtils;
 import org.apache.servicecomb.foundation.auth.AuthHeaderProvider;
 import org.apache.servicecomb.foundation.ssl.SSLCustom;
@@ -28,20 +27,17 @@ import org.apache.servicecomb.http.client.common.HttpConfiguration;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AuthHeaderProviders {
 
-  public static RequestAuthHeaderProvider getRequestAuthHeaderProvider(EnvironmentAdapter environment) {
+  public static RequestAuthHeaderProvider getRequestAuthHeaderProvider(Properties environment) {
     List<AuthHeaderProvider> authHeaderProviders = new ArrayList<>();
     authHeaderProviders.add(createAkSkRequestAuthHeaderProvider(environment));
     //authHeaderProviders.add(new RBACRequestAuthHeaderProvider(commonConfiguration, environment));
     return getRequestAuthHeaderProvider(authHeaderProviders);
   }
-  public static HttpConfiguration.SSLProperties createSSLProperties(EnvironmentAdapter environment) {
+  public static HttpConfiguration.SSLProperties createSSLProperties(Properties environment) {
     HttpConfiguration.SSLProperties sslProperties = new HttpConfiguration.SSLProperties();
     sslProperties.setEnabled(Boolean.parseBoolean(environment.getProperty(CommonConfiguration.KEY_SSL_ENABLED, "false")));
     if (sslProperties.isEnabled()) {
@@ -78,7 +74,7 @@ public class AuthHeaderProviders {
     };
   }
 
-  private static AkSkRequestAuthHeaderProvider createAkSkRequestAuthHeaderProvider(EnvironmentAdapter environment) {
+  private static AkSkRequestAuthHeaderProvider createAkSkRequestAuthHeaderProvider(Properties environment) {
     AkSkRequestAuthHeaderProvider requestAuthHeaderProvider = new AkSkRequestAuthHeaderProvider();
     requestAuthHeaderProvider.setEnabled(Boolean.parseBoolean(environment.getProperty(CommonConfiguration.KEY_AK_SK_ENABLED, "false")));
     requestAuthHeaderProvider.setAccessKey(environment.getProperty(CommonConfiguration.KEY_AK_SK_ACCESS_KEY, ""));
