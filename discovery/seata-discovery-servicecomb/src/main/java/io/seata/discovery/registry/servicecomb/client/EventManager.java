@@ -24,50 +24,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EventManager {
-  private static volatile EventBus eventBus = new EventBus();
+  private static EventBus eventBus;
   private static List<String> eventBusNames = new ArrayList<>();
 
-  public static void initEventBus() {
-    if (eventBus == null) {
-      synchronized (EventManager.class) {
-        if (eventBus == null) {
-          if (!eventBusNames.isEmpty()) {
-            for (String className : eventBusNames) {
-              try {
-                Class<?> huaweiEventManagerClazz = Class.forName(className);
-                Field busField = huaweiEventManagerClazz.getDeclaredField("eventBus");
-                busField.setAccessible(true);
-                eventBus = (EventBus) busField.get(null);
-                break;
-              } catch (Exception e) {
-                //ignore
-              }
-            }
-          }
-          if (eventBus == null) {
-            eventBus = new EventBus();
-          }
-        }
+  static {
+    eventBusNames.add("com.huaweicloud.common.event.EventManager");
+    eventBusNames.add("com.huaweicloud.dubbo.common.EventManager");
+    eventBusNames.add("org.apache.servicecomb.foundation.common.event.EventManager");
+    for (String className : eventBusNames) {
+      try {
+        Class<?> huaweiEventManagerClazz = Class.forName(className);
+        Field busField = huaweiEventManagerClazz.getDeclaredField("eventBus");
+        busField.setAccessible(true);
+        eventBus = (EventBus) busField.get(null);
+        break;
+      } catch (Exception e) {
+        //ignore
       }
+    }
+    if (eventBus == null) {
+      eventBus = new EventBus();
     }
   }
 
-  public static void addEventBusClass(String className) {
-    eventBusNames.add(className);
-  }
-
   public static EventBus getEventBus() {
-    initEventBus();
     return eventBus;
   }
 
   public static void post(Object event) {
-    initEventBus();
     eventBus.post(event);
   }
 
   public static void register(Object subscriber) {
-    initEventBus();
     eventBus.register(subscriber);
   }
 

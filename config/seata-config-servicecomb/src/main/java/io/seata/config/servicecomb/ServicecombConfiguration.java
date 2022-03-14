@@ -75,7 +75,6 @@ public class ServicecombConfiguration extends AbstractConfiguration {
      * Instantiates a new Servicecomb configuration.
      */
     private ServicecombConfiguration() {
-        EventManager.addEventBusClass("com.huaweicloud.common.event.EventManager");
         helper = new ServicecombConfigurationHelper(createProperties());
         initSeataConfig(helper.getCurrentData());
         EventManager.register(this);

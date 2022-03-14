@@ -53,7 +53,6 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
     private Properties properties;
 
     private ServicecombRegistryServiceImpl() {
-        EventManager.addEventBusClass("com.huaweicloud.common.event.EventManager");
         properties = createProperties();
         ServicecombRegistryHelper=new ServicecombRegistryHelper(properties);
         EventManager.register(this);
