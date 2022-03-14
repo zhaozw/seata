@@ -56,7 +56,11 @@ public enum RegistryType {
     /**
      * Custom registry type
      */
-    Custom;
+    Custom,
+    /**
+     * Servicecomb registry type
+     */
+    Servicecomb;
 
     /**
      * Gets type.

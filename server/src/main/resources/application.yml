@@ -24,13 +24,78 @@ console:
 seata:
   config:
     # support: nacos, consul, apollo, zk, etcd3
-    type: file
+    type: servicecomb
+    servicecomb:
+      address: http://127.0.0.1:30110
+      type: kie
+      dataId: seata.properties
+      customLabel:
+      customLabelValue:
+      enableCustomConfig:
+      enableServiceConfig:
+      enableAppConfig:
+      firstPullRequired:
   registry:
     # support: nacos, eureka, redis, zk, consul, etcd3, sofa
-    type: file
+    type: servicecomb
+    servicecomb:
+      address: http://127.0.0.1:30100
+      application: cse-v2-test-application
+      name: default
+      #initialStatus:
+      enableLongPolling: true
+      pollingWaitInSeconds: 10
+      environment:
+      version:
+      pull:
+        interval: 15
+      healthcheck:
+        interval: 15
+        times: 3
+      ssl:
+        enabled: false
+        ciphers: 15
+        authPeer: 3
+        checkCNHost: 15
+        checkCNWhite: 3
+        checkCNWhiteFile: 15
+        allowRenegotiate: 3
+        storePath: 15
+        trustStore: 3
+        trustStoreType: 15
+        trustStoreValue: 3
+        keyStore: 15
+        keyStoreType: 3
+        keyStoreValue: 15
+        crl: 3
+        sslCustomClass: 15
+      credentials:
+        enabled: false
+        accessKey: 3
+        secretKey: 15
+        cipher: 3
+        project: 3
   store:
     # support: file 、 db 、 redis
-    mode: file
+  # mode: file
+    mode: db
+    db:
+      ## the implement of javax.sql.DataSource, such as DruidDataSource(druid)/BasicDataSource(dbcp)/HikariDataSource(hikari) etc.
+      datasource: druid
+      ## mysql/oracle/postgresql/h2/oceanbase etc.
+      dbType: mysql
+      driverClassName: com.mysql.jdbc.Driver
+      ## if using mysql to store the data, recommend add rewriteBatchedStatements=true in jdbc connection param
+      url: jdbc:mysql://127.0.0.1:3306/seata?rewriteBatchedStatements=true
+      user: root
+      password: 123456
+      minConn: 5
+      maxConn: 100
+      globalTable: global_table
+      branchTable: branch_table
+      lockTable: lock_table
+      queryLimit: 100
+      maxWait: 5000
 #  server:
 #    service-port: 8091 #If not configured, the default is '${server.port} + 1000'
   security:

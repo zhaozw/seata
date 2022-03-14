@@ -52,7 +52,15 @@ public enum ConfigType {
     /**
      * Custom config type
      */
-    Custom;
+    Custom,
+    /**
+     * Servicecomb kie config type
+     */
+    Kie,
+    /**
+     * Servicecomb config type
+     */
+    Servicecomb;
 
     /**
      * Gets type.

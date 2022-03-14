@@ -20,7 +20,7 @@
     <parent>
         <groupId>io.seata</groupId>
         <artifactId>seata-build</artifactId>
-        <version>${revision}</version>
+        <version>1.5.0-SNAPSHOT</version>
         <relativePath>../build/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -142,6 +142,16 @@
         <dependency>
             <groupId>io.seata</groupId>
             <artifactId>seata-discovery-etcd3</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.seata</groupId>
+            <artifactId>seata-discovery-servicecomb</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.seata</groupId>
+            <artifactId>seata-config-servicecomb</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
