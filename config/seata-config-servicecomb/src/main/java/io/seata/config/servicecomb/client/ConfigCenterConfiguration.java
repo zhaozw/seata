@@ -17,6 +17,7 @@
 
 package io.seata.config.servicecomb.client;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.servicecomb.config.center.client.AddressManager;
 import org.apache.servicecomb.config.center.client.model.QueryConfigurationsRequest;
 import org.slf4j.Logger;
@@ -28,18 +29,18 @@ import java.util.Properties;
 public class ConfigCenterConfiguration {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConfigCenterConfiguration.class);
 
-  private Properties environment;
+  private Properties properties;
 
-  public ConfigCenterConfiguration(Properties environment) {
-    this.environment = environment;
+  public ConfigCenterConfiguration(Properties properties) {
+    this.properties = properties;
   }
 
   public AddressManager createAddressManager() {
-    String address = environment.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESS, "");
+    String address = properties.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESS, "");
     if (StringUtils.isEmpty(address)) {
       return null;
     }
-    String project = environment.getProperty(CommonConfiguration.KEY_SERVICE_PROJECT, "default");
+    String project = properties.getProperty(CommonConfiguration.KEY_SERVICE_PROJECT, "default");
     LOGGER.info("Using config center, address={}", address);
     return new AddressManager(project, Arrays.asList(address.split(",")),EventManager.getEventBus()
             );
@@ -47,10 +48,10 @@ public class ConfigCenterConfiguration {
 
   public QueryConfigurationsRequest createQueryConfigurationsRequest() {
     QueryConfigurationsRequest request = new QueryConfigurationsRequest();
-    request.setApplication(environment.getProperty(CommonConfiguration.KEY_SERVICE_APPLICATION, "default"));
-    request.setServiceName(environment.getProperty(CommonConfiguration.KEY_SERVICE_NAME, "defaultMicroserviceName"));
-    request.setVersion(environment.getProperty(CommonConfiguration.KEY_SERVICE_VERSION, "1.0.0.0"));
-    request.setEnvironment(environment.getProperty(CommonConfiguration.KEY_SERVICE_ENVIRONMENT, ""));
+    request.setApplication(properties.getProperty(CommonConfiguration.KEY_SERVICE_APPLICATION, "default"));
+    request.setServiceName(properties.getProperty(CommonConfiguration.KEY_SERVICE_NAME, "defaultMicroserviceName"));
+    request.setVersion(properties.getProperty(CommonConfiguration.KEY_SERVICE_VERSION, "1.0.0.0"));
+    request.setEnvironment(properties.getProperty(CommonConfiguration.KEY_SERVICE_ENVIRONMENT, ""));
     // 需要设置为 null， 并且 query 参数为 revision=null 才会返回 revision 信息。 revision = 是不行的。
     request.setRevision(null);
     return request;

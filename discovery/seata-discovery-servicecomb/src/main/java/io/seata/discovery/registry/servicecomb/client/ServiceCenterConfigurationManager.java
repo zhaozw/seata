@@ -39,18 +39,18 @@ public class ServiceCenterConfigurationManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCenterConfigurationManager.class);
 
-  private Properties environment;
+  private Properties properties;
 
-  public ServiceCenterConfigurationManager(Properties environment) {
-    this.environment = environment;
+  public ServiceCenterConfigurationManager(Properties properties) {
+    this.properties = properties;
   }
 
   public Microservice createMicroservice() {
     Microservice microservice = new Microservice();
-    microservice.setAppId(environment.getProperty(KEY_SERVICE_APPLICATION, "default"));
-    microservice.setServiceName(environment.getProperty(KEY_SERVICE_NAME, "defaultMicroserviceName"));
-    microservice.setVersion(environment.getProperty(KEY_SERVICE_VERSION, "1.0.0.0"));
-    microservice.setEnvironment(environment.getProperty(KEY_SERVICE_ENVIRONMENT, ""));
+    microservice.setAppId(properties.getProperty(KEY_SERVICE_APPLICATION, "default"));
+    microservice.setServiceName(properties.getProperty(KEY_SERVICE_NAME, "defaultMicroserviceName"));
+    microservice.setVersion(properties.getProperty(KEY_SERVICE_VERSION, "1.0.0.0"));
+    microservice.setEnvironment(properties.getProperty(KEY_SERVICE_ENVIRONMENT, ""));
     Framework framework = new Framework();
     framework.setName("SEATA-DISCOVERY-SERVICECOMB");
     StringBuilder version = new StringBuilder();
@@ -64,19 +64,19 @@ public class ServiceCenterConfigurationManager {
 
   public MicroserviceInstance createMicroserviceInstance() {
     MicroserviceInstance instance = new MicroserviceInstance();
-    instance.setStatus(MicroserviceInstanceStatus.valueOf(environment.getProperty(KEY_INSTANCE_ENVIRONMENT, "UP")));
+    instance.setStatus(MicroserviceInstanceStatus.valueOf(properties.getProperty(KEY_INSTANCE_ENVIRONMENT, "UP")));
     HealthCheck healthCheck = new HealthCheck();
     healthCheck.setMode(HealthCheckMode.pull);
-    healthCheck.setInterval(Integer.parseInt(environment.getProperty(KEY_INSTANCE_HEALTH_CHECK_INTERVAL, "15")));
-    healthCheck.setTimes(Integer.parseInt(environment.getProperty(KEY_INSTANCE_HEALTH_CHECK_TIMES, "3")));
+    healthCheck.setInterval(Integer.parseInt(properties.getProperty(KEY_INSTANCE_HEALTH_CHECK_INTERVAL, "15")));
+    healthCheck.setTimes(Integer.parseInt(properties.getProperty(KEY_INSTANCE_HEALTH_CHECK_TIMES, "3")));
     instance.setHealthCheck(healthCheck);
     return instance;
   }
 
   public AddressManager createAddressManager() {
-    String address = environment.getProperty(KEY_REGISTRY_ADDRESS, "http://127.0.0.1:30100");
-    String project = environment.getProperty(KEY_SERVICE_PROJECT, "default");
+    String address = properties.getProperty(KEY_REGISTRY_ADDRESS, "http://127.0.0.1:30100");
+    String project = properties.getProperty(KEY_SERVICE_PROJECT, "default");
     LOGGER.info("Using service center, address={}.", address);
-    return new AddressManager(project, Arrays.asList(address.split(",")),EventManager.getEventBus());
+    return new AddressManager(project, Arrays.asList(address.split(",")));
   }
 }

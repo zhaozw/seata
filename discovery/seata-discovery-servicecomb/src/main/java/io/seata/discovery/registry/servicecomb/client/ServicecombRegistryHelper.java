@@ -26,7 +26,7 @@ public class ServicecombRegistryHelper {
 
     private ServiceCenterWatch watch;
 
-    private Properties environment;
+    private Properties properties;
 
     private ServiceCenterConfigurationManager serviceCenterConfigurationManager;
 
@@ -36,10 +36,10 @@ public class ServicecombRegistryHelper {
 
     private boolean enableDiscovery=true;
 
-    public ServicecombRegistryHelper(Properties environment) {
-        this.environment=environment;
-        serviceCenterConfigurationManager=new ServiceCenterConfigurationManager(environment);
-        //commonConfiguration = new CommonConfiguration(environment);;
+    public ServicecombRegistryHelper(Properties properties) {
+        this.properties=properties;
+        serviceCenterConfigurationManager=new ServiceCenterConfigurationManager(properties);
+        //commonConfiguration = new CommonConfiguration(properties);;
     }
 
     public void register(String endPoint) throws Exception {
@@ -62,11 +62,11 @@ public class ServicecombRegistryHelper {
         serviceCenterRegistration.setHeartBeatInterval(microserviceInstance.getHealthCheck().getInterval());
         serviceCenterRegistration.startRegistration();
 
-        if (environment.getProperty(CommonConfiguration
-                .KEY_SERVICE_PROJECT,"false").equals("true")){
+        if (properties.getProperty(CommonConfiguration
+                .KEY_REGISTRY_WATCH,"false").equals("true")){
             watch = new ServiceCenterWatch(serviceCenterConfigurationManager.createAddressManager(),
-                    AuthHeaderProviders.createSSLProperties(environment),
-                    AuthHeaderProviders.getRequestAuthHeaderProvider(environment),
+                    AuthHeaderProviders.createSSLProperties(properties),
+                    AuthHeaderProviders.getRequestAuthHeaderProvider(properties),
                     "default", new HashMap<>(), EventManager.getEventBus());
         }
         EventManager.register(this);
@@ -87,9 +87,9 @@ public class ServicecombRegistryHelper {
                         getClientFromSpringCloud();
                         if (client == null) {
                             AddressManager addressManager = serviceCenterConfigurationManager.createAddressManager();
-                            HttpConfiguration.SSLProperties sslProperties = AuthHeaderProviders.createSSLProperties(environment);
+                            HttpConfiguration.SSLProperties sslProperties = AuthHeaderProviders.createSSLProperties(properties);
                             client = new ServiceCenterClient(addressManager, sslProperties,
-                                    AuthHeaderProviders.getRequestAuthHeaderProvider(environment),
+                                    AuthHeaderProviders.getRequestAuthHeaderProvider(properties),
                                     "default", null);
                         }
                         microservice = serviceCenterConfigurationManager.createMicroservice();
@@ -115,7 +115,7 @@ public class ServicecombRegistryHelper {
                 serviceCenterDiscovery = new ServiceCenterDiscovery(client, EventManager.getEventBus());
                 serviceCenterDiscovery.updateMyselfServiceId(microservice.getServiceId());
                 serviceCenterDiscovery
-                        .setPollInterval(Integer.parseInt(environment.getProperty(CommonConfiguration.KEY_INSTANCE_PULL_INTERVAL, "15")));
+                        .setPollInterval(Integer.parseInt(properties.getProperty(CommonConfiguration.KEY_INSTANCE_PULL_INTERVAL, "15")));
                 serviceCenterDiscovery.startDiscovery();
             } else {
                 serviceCenterDiscovery.updateMyselfServiceId(microservice.getServiceId());

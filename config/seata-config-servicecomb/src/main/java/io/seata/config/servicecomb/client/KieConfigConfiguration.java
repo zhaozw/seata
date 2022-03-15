@@ -17,6 +17,7 @@
 
 package io.seata.config.servicecomb.client;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.servicecomb.config.kie.client.model.KieAddressManager;
 import org.apache.servicecomb.config.kie.client.model.KieConfiguration;
 import org.slf4j.Logger;
@@ -29,15 +30,15 @@ import java.util.Properties;
 public class KieConfigConfiguration {
   private static final Logger LOGGER = LoggerFactory.getLogger(KieConfigConfiguration.class);
 
-  private Properties environment;
+  private Properties properties;
 
-  public KieConfigConfiguration(Properties environment) {
-    this.environment = environment;
+  public KieConfigConfiguration(Properties properties) {
+    this.properties = properties;
   }
 
   //初始化配置属性值，这里统一初始化，对于client模块，解耦对默认值的感知,屏蔽不同框架带来的配置项差异对KieAddressManager的影响
   public KieAddressManager createKieAddressManager() {
-    String address = environment.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESS, "http://127.0.0.1:30110");
+    String address = properties.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESS, "http://127.0.0.1:30110");
     if (StringUtils.isEmpty(address)) {
       return null;
     }
@@ -48,26 +49,26 @@ public class KieConfigConfiguration {
 
   public KieConfiguration createKieConfiguration() {
     KieConfiguration kieConfiguration = new KieConfiguration();
-    kieConfiguration.setAppName(environment.getProperty(CommonConfiguration.KEY_SERVICE_APPLICATION, "default"));
-    kieConfiguration.setServiceName(environment.getProperty(CommonConfiguration.KEY_SERVICE_NAME, "defaultMicroserviceName"));
-    kieConfiguration.setEnvironment(environment.getProperty(CommonConfiguration.KEY_SERVICE_ENVIRONMENT, ""));
-    kieConfiguration.setProject(environment.getProperty(CommonConfiguration.KEY_SERVICE_PROJECT, "default"));
-    kieConfiguration.setCustomLabel(environment.getProperty(CommonConfiguration.KEY_SERVICE_KIE_CUSTOMLABEL, "public"));
-    kieConfiguration.setCustomLabelValue(environment.getProperty(CommonConfiguration.KEY_SERVICE_KIE_CUSTOMLABELVALUE, ""));
+    kieConfiguration.setAppName(properties.getProperty(CommonConfiguration.KEY_SERVICE_APPLICATION, "default"));
+    kieConfiguration.setServiceName(properties.getProperty(CommonConfiguration.KEY_SERVICE_NAME, "defaultMicroserviceName"));
+    kieConfiguration.setEnvironment(properties.getProperty(CommonConfiguration.KEY_SERVICE_ENVIRONMENT, ""));
+    kieConfiguration.setProject(properties.getProperty(CommonConfiguration.KEY_SERVICE_PROJECT, "default"));
+    kieConfiguration.setCustomLabel(properties.getProperty(CommonConfiguration.KEY_SERVICE_KIE_CUSTOMLABEL, "public"));
+    kieConfiguration.setCustomLabelValue(properties.getProperty(CommonConfiguration.KEY_SERVICE_KIE_CUSTOMLABELVALUE, ""));
     kieConfiguration
         .setEnableCustomConfig(
-            Boolean.parseBoolean(environment.getProperty(CommonConfiguration.KEY_SERVICE_KIE_ENABLECUSTOMCONFIG, "true")));
+            Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SERVICE_KIE_ENABLECUSTOMCONFIG, "true")));
     kieConfiguration
         .setEnableServiceConfig(
-            Boolean.parseBoolean(environment.getProperty(CommonConfiguration.KEY_SERVICE_KIE_ENABLESERVICECONFIG, "true")));
+            Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SERVICE_KIE_ENABLESERVICECONFIG, "true")));
     kieConfiguration
-        .setEnableAppConfig(Boolean.parseBoolean(environment.getProperty(CommonConfiguration.KEY_SERVICE_KIE_ENABLEAPPCONFIG, "true")));
+        .setEnableAppConfig(Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SERVICE_KIE_ENABLEAPPCONFIG, "true")));
     kieConfiguration
-        .setFirstPullRequired(Boolean.parseBoolean(environment.getProperty(CommonConfiguration.KEY_SERVICE_KIE_FRISTPULLREQUIRED, "true")));
+        .setFirstPullRequired(Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SERVICE_KIE_FRISTPULLREQUIRED, "true")));
     kieConfiguration
-        .setEnableLongPolling(Boolean.parseBoolean(environment.getProperty(CommonConfiguration.KEY_SERVICE_ENABLELONGPOLLING, "true")));
+        .setEnableLongPolling(Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SERVICE_ENABLELONGPOLLING, "true")));
     kieConfiguration
-        .setPollingWaitInSeconds(Integer.parseInt(environment.getProperty(CommonConfiguration.KEY_SERVICE_POLLINGWAITSEC, "10")));
+        .setPollingWaitInSeconds(Integer.parseInt(properties.getProperty(CommonConfiguration.KEY_SERVICE_POLLINGWAITSEC, "10")));
     return kieConfiguration;
   }
 }

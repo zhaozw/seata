@@ -1,7 +1,7 @@
 package io.seata.config.servicecomb.client;
 
-import io.seata.config.servicecomb.client.auth.AkSkRequestAuthHeaderProvider;
 import io.seata.config.servicecomb.client.auth.AuthHeaderProviders;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.servicecomb.config.center.client.AddressManager;
 import org.apache.servicecomb.config.center.client.ConfigCenterClient;
@@ -13,18 +13,11 @@ import org.apache.servicecomb.config.kie.client.KieClient;
 import org.apache.servicecomb.config.kie.client.KieConfigManager;
 import org.apache.servicecomb.config.kie.client.model.KieAddressManager;
 import org.apache.servicecomb.config.kie.client.model.KieConfiguration;
-import org.apache.servicecomb.foundation.auth.AuthHeaderProvider;
-import org.apache.servicecomb.foundation.ssl.SSLCustom;
-import org.apache.servicecomb.foundation.ssl.SSLOption;
-import org.apache.servicecomb.http.client.auth.RequestAuthHeaderProvider;
-import org.apache.servicecomb.http.client.common.HttpConfiguration;
 import org.apache.servicecomb.http.client.common.HttpTransport;
 import org.apache.servicecomb.http.client.common.HttpTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.*;
 
 public class ServicecombConfigurationHelper {
@@ -46,24 +39,24 @@ public class ServicecombConfigurationHelper {
 
     private ConfigConverter configConverter;
 
-    private Properties environment;
+    private Properties properties;
 
-    public ServicecombConfigurationHelper(Properties environment){
+    public ServicecombConfigurationHelper(Properties properties){
 
 
-        this.environment = environment;
+        this.properties = properties;
         configConverter = initConfigConverter();
 
-        configCenterConfiguration = new ConfigCenterConfiguration(environment);
-        kieConfigConfiguration = new KieConfigConfiguration(environment);
+        configCenterConfiguration = new ConfigCenterConfiguration(properties);
+        kieConfigConfiguration = new KieConfigConfiguration(properties);
 
-        addConfigCenterProperties(environment);
+        addConfigCenterProperties(properties);
 
     }
 
     /***/
      private ConfigConverter initConfigConverter() {
-         String fileSources = environment.getProperty(CommonConfiguration.KEY_CONFIG_FILESOURCE, "");
+         String fileSources = properties.getProperty(CommonConfiguration.KEY_CONFIG_FILESOURCE, "");
          if (StringUtils.isEmpty(fileSources)) {
             configConverter = new ConfigConverter(null);
          } else {
@@ -72,26 +65,26 @@ public class ServicecombConfigurationHelper {
          return configConverter;
      }
 
-    private void addConfigCenterProperties(Properties ce) {
-        isKie = ce.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESSTYPE, "kie").equals("kie");
+    private void addConfigCenterProperties(Properties properties) {
+        isKie = properties.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESSTYPE, "kie").equals("kie");
         RequestConfig.Builder config = HttpTransportFactory.defaultRequestConfig();
 
         this.setTimeOut(config);
 
         httpTransport = HttpTransportFactory
-                .createHttpTransport(AuthHeaderProviders.createSSLProperties(ce),
-                        AuthHeaderProviders.getRequestAuthHeaderProvider(ce), config.build());
+                .createHttpTransport(AuthHeaderProviders.createSSLProperties(properties),
+                        AuthHeaderProviders.getRequestAuthHeaderProvider(properties), config.build());
 
         //判断是否使用KIE作为配置中心
         if (isKie) {
-            configKieClient(ce);
+            configKieClient(properties);
         } else {
-            configCenterClient(ce);
+            configCenterClient(properties);
         }
     }
 
 
-    private void configCenterClient(Properties ce) {
+    private void configCenterClient(Properties properties) {
         QueryConfigurationsRequest queryConfigurationsRequest = configCenterConfiguration.createQueryConfigurationsRequest();
         AddressManager addressManager = configCenterConfiguration.createAddressManager();
         if (addressManager == null) {
@@ -115,7 +108,7 @@ public class ServicecombConfigurationHelper {
     }
 
     //use KIE as config center
-    private void configKieClient(Properties ce) {
+    private void configKieClient(Properties properties) {
 
         kieConfiguration = kieConfigConfiguration.createKieConfiguration();
 
@@ -137,10 +130,10 @@ public class ServicecombConfigurationHelper {
         if (!isKie) {
             return;
         }
-        String test = environment.getProperty(CommonConfiguration.KEY_SERVICE_ENABLELONGPOLLING,
+        String test = properties.getProperty(CommonConfiguration.KEY_SERVICE_ENABLELONGPOLLING,
                 "true");
         if (Boolean.parseBoolean(test)) {
-            int pollingWaitInSeconds = Integer.valueOf(environment.getProperty(CommonConfiguration.KEY_SERVICE_POLLINGWAITSEC,
+            int pollingWaitInSeconds = Integer.valueOf(properties.getProperty(CommonConfiguration.KEY_SERVICE_POLLINGWAITSEC,
                     "30"));
             config.setSocketTimeout(pollingWaitInSeconds * 1000 + 5000);
         }

@@ -18,7 +18,7 @@
 package io.seata.config.servicecomb.client.auth;
 
 import io.seata.config.servicecomb.client.CommonConfiguration;
-import io.seata.config.servicecomb.client.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.servicecomb.foundation.auth.AuthHeaderProvider;
 import org.apache.servicecomb.foundation.ssl.SSLCustom;
 import org.apache.servicecomb.foundation.ssl.SSLOption;
@@ -31,35 +31,33 @@ import java.util.*;
 
 public class AuthHeaderProviders {
 
-  public static RequestAuthHeaderProvider getRequestAuthHeaderProvider(Properties environment) {
+  public static RequestAuthHeaderProvider getRequestAuthHeaderProvider(Properties properties) {
     List<AuthHeaderProvider> authHeaderProviders = new ArrayList<>();
-    authHeaderProviders.add(createAkSkRequestAuthHeaderProvider(environment));
-    //authHeaderProviders.add(new RBACRequestAuthHeaderProvider(commonConfiguration, environment));
     return getRequestAuthHeaderProvider(authHeaderProviders);
   }
-  public static HttpConfiguration.SSLProperties createSSLProperties(Properties environment) {
+  public static HttpConfiguration.SSLProperties createSSLProperties(Properties properties) {
     HttpConfiguration.SSLProperties sslProperties = new HttpConfiguration.SSLProperties();
-    sslProperties.setEnabled(Boolean.parseBoolean(environment.getProperty(CommonConfiguration.KEY_SSL_ENABLED, "false")));
+    sslProperties.setEnabled(Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_ENABLED, "false")));
     if (sslProperties.isEnabled()) {
       SSLOption option = new SSLOption();
-      option.setEngine(environment.getProperty(CommonConfiguration.KEY_SSL_ENGINE, "jdk"));
-      option.setProtocols(environment.getProperty(CommonConfiguration.KEY_SSL_PROTOCOLS, "TLSv1.2"));
-      option.setCiphers(environment.getProperty(CommonConfiguration.KEY_SSL_CIPHERS, CommonConfiguration.DEFAULT_CIPHERS));
-      option.setAuthPeer(Boolean.parseBoolean(environment.getProperty(CommonConfiguration.KEY_SSL_AUTH_PEER, "false")));
-      option.setCheckCNHost(Boolean.parseBoolean(environment.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_HOST, "false")));
-      option.setCheckCNWhite(Boolean.parseBoolean(environment.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_WHITE, "false")));
-      option.setCheckCNWhiteFile(environment.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_WHITE_FILE, "white.list"));
-      option.setAllowRenegociate(Boolean.parseBoolean(environment.getProperty(CommonConfiguration.KEY_SSL_ALLOW_RENEGOTIATE, "false")));
-      option.setStorePath(environment.getProperty(CommonConfiguration.KEY_SSL_STORE_PATH, "internal"));
-      option.setKeyStore(environment.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE, "server.p12"));
-      option.setKeyStoreType(environment.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE_TYPE, "PKCS12"));
-      option.setKeyStoreValue(environment.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE_VALUE, "keyStoreValue"));
-      option.setTrustStore(environment.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE, "trust.jks"));
-      option.setTrustStoreType(environment.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE_TYPE, "JKS"));
-      option.setTrustStoreValue(environment.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE_VALUE, "trustStoreValue"));
-      option.setCrl(environment.getProperty(CommonConfiguration.KEY_SSL_CRL, "revoke.crl"));
+      option.setEngine(properties.getProperty(CommonConfiguration.KEY_SSL_ENGINE, "jdk"));
+      option.setProtocols(properties.getProperty(CommonConfiguration.KEY_SSL_PROTOCOLS, "TLSv1.2"));
+      option.setCiphers(properties.getProperty(CommonConfiguration.KEY_SSL_CIPHERS, CommonConfiguration.DEFAULT_CIPHERS));
+      option.setAuthPeer(Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_AUTH_PEER, "false")));
+      option.setCheckCNHost(Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_HOST, "false")));
+      option.setCheckCNWhite(Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_WHITE, "false")));
+      option.setCheckCNWhiteFile(properties.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_WHITE_FILE, "white.list"));
+      option.setAllowRenegociate(Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_ALLOW_RENEGOTIATE, "false")));
+      option.setStorePath(properties.getProperty(CommonConfiguration.KEY_SSL_STORE_PATH, "internal"));
+      option.setKeyStore(properties.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE, "server.p12"));
+      option.setKeyStoreType(properties.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE_TYPE, "PKCS12"));
+      option.setKeyStoreValue(properties.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE_VALUE, "keyStoreValue"));
+      option.setTrustStore(properties.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE, "trust.jks"));
+      option.setTrustStoreType(properties.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE_TYPE, "JKS"));
+      option.setTrustStoreValue(properties.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE_VALUE, "trustStoreValue"));
+      option.setCrl(properties.getProperty(CommonConfiguration.KEY_SSL_CRL, "revoke.crl"));
 
-      SSLCustom sslCustom = SSLCustom.createSSLCustom(environment.getProperty(CommonConfiguration.KEY_SSL_SSL_CUSTOM_CLASS, ""));
+      SSLCustom sslCustom = SSLCustom.createSSLCustom(properties.getProperty(CommonConfiguration.KEY_SSL_SSL_CUSTOM_CLASS, ""));
       sslProperties.setSslOption(option);
       sslProperties.setSslCustom(sslCustom);
     }
@@ -72,16 +70,6 @@ public class AuthHeaderProviders {
       authHeaderProviders.forEach(authHeaderProvider -> headers.putAll(authHeaderProvider.authHeaders()));
       return headers;
     };
-  }
-
-  private static AkSkRequestAuthHeaderProvider createAkSkRequestAuthHeaderProvider(Properties environment) {
-    AkSkRequestAuthHeaderProvider requestAuthHeaderProvider = new AkSkRequestAuthHeaderProvider();
-    requestAuthHeaderProvider.setEnabled(Boolean.parseBoolean(environment.getProperty(CommonConfiguration.KEY_AK_SK_ENABLED, "false")));
-    requestAuthHeaderProvider.setAccessKey(environment.getProperty(CommonConfiguration.KEY_AK_SK_ACCESS_KEY, ""));
-    requestAuthHeaderProvider.setSecretKey(environment.getProperty(CommonConfiguration.KEY_AK_SK_SECRET_KEY, ""));
-    requestAuthHeaderProvider.setCipher(environment.getProperty(CommonConfiguration.KEY_AK_SK_CIPHER, ""));
-    requestAuthHeaderProvider.setProject(safeGetProject(environment.getProperty(CommonConfiguration.KEY_AK_SK_PROJECT, "")));
-    return requestAuthHeaderProvider;
   }
 
   private static String safeGetProject(String project) {

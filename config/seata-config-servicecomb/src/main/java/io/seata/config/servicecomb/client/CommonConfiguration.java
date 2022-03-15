@@ -17,15 +17,6 @@
 
 package io.seata.config.servicecomb.client;
 
-import io.seata.common.util.StringUtils;
-import io.seata.config.servicecomb.client.auth.AkSkRequestAuthHeaderProvider;
-import org.apache.servicecomb.foundation.ssl.SSLCustom;
-import org.apache.servicecomb.foundation.ssl.SSLOption;
-import org.apache.servicecomb.http.client.common.HttpConfiguration.SSLProperties;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 
 public interface CommonConfiguration {
   String DEFAULT_CIPHERS = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,"
@@ -43,22 +34,6 @@ public interface CommonConfiguration {
   String KEY_SERVICE_VERSION = "servicecomb.service.version";
 
   String KEY_SERVICE_ENVIRONMENT = "servicecomb.service.environment";
-
-  // ###### service instance configuration ############### //
-  String KEY_INSTANCE_ENVIRONMENT = "servicecomb.instance.initialStatus";
-
-  String KEY_INSTANCE_PULL_INTERVAL = "servicecomb.instance.pull.interval";
-
-  String KEY_INSTANCE_HEALTH_CHECK_INTERVAL = "servicecomb.instance.healthCheck.interval";
-
-  String KEY_INSTANCE_HEALTH_CHECK_TIMES = "servicecomb.instance.healthCheck.times";
-
-  // ###### service center configuration ############### //
-  String KEY_REGISTRY_ADDRESS = "servicecomb.registry.address";
-
-  String KEY_REGISTRY_WATCH = "servicecomb.registry.watch";
-
-  String KEY_SERVICE_IGNORESWAGGERDIFFERENT = "servicecomb.registry.ignoreSwaggerDifferent";
 
   // ###### config center configuration ############### //
   String KEY_CONFIG_ADDRESSTYPE = "servicecomb.config.type";

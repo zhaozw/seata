@@ -50,32 +50,6 @@ public interface CommonConfiguration {
 
   String KEY_SERVICE_IGNORESWAGGERDIFFERENT = "servicecomb.registry.ignoreSwaggerDifferent";
 
-  // ###### config center configuration ############### //
-  String KEY_CONFIG_ADDRESSTYPE = "servicecomb.config.type";
-
-  String KEY_CONFIG_FILESOURCE = "servicecomb.config.fileSource";
-
-  String KEY_CONFIG_ADDRESS = "servicecomb.config.address";
-
-  // ###### kie config center polling configuration############### //
-  String KEY_SERVICE_ENABLELONGPOLLING = "servicecomb.config.enableLongPolling";
-
-  String KEY_SERVICE_POLLINGWAITSEC = "servicecomb.config.pollingWaitInSeconds";
-
-  // ###### kie configuration############### //
-
-  String KEY_SERVICE_KIE_CUSTOMLABEL = "servicecomb.config.customLabel";
-
-  String KEY_SERVICE_KIE_CUSTOMLABELVALUE = "servicecomb.config.customLabelValue";
-
-  String KEY_SERVICE_KIE_FRISTPULLREQUIRED = "servicecomb.config.firstPullRequired";
-
-  String KEY_SERVICE_KIE_ENABLEAPPCONFIG = "servicecomb.config.enableAppConfig";
-
-  String KEY_SERVICE_KIE_ENABLECUSTOMCONFIG = "servicecomb.config.enableCustomConfig";
-
-  String KEY_SERVICE_KIE_ENABLESERVICECONFIG = "servicecomb.config.enableServiceConfig";
-
   // ###### ssl configuration ############### //
   String KEY_SSL_ENABLED = "servicecomb.ssl.enabled";
 

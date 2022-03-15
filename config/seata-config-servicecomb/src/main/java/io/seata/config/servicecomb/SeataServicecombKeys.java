@@ -18,33 +18,28 @@
 package io.seata.config.servicecomb;
 
 
-public interface SeataServicecombKeys {
-  String DEFAULT_CIPHERS = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,"
-          + "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256";
+import io.seata.common.ConfigurationKeys;
 
-  String DEFAULT_PROJECT = "default";
-  String FILE_ROOT_REGISTRY = "config";
-  String FILE_CONFIG_SPLIT_CHAR = ".";
+public interface SeataServicecombKeys {
   String REGISTRY_TYPE = "servicecomb";
 
-  String FILE_CONFIG_KEY_PREFIX = FILE_ROOT_REGISTRY + FILE_CONFIG_SPLIT_CHAR + REGISTRY_TYPE
-          + FILE_CONFIG_SPLIT_CHAR;
+  String FILE_CONFIG_KEY_PREFIX = ConfigurationKeys.FILE_ROOT_CONFIG + ConfigurationKeys.FILE_CONFIG_SPLIT_CHAR + REGISTRY_TYPE
+          + ConfigurationKeys.FILE_CONFIG_SPLIT_CHAR;
 
-  String FILE_CONFIG_KEY_PREFIX2 = "registry" + FILE_CONFIG_SPLIT_CHAR + REGISTRY_TYPE
-          + FILE_CONFIG_SPLIT_CHAR;
+  String FILE_REGISTRY_KEY_PREFIX = ConfigurationKeys.FILE_ROOT_REGISTRY + ConfigurationKeys.FILE_CONFIG_SPLIT_CHAR + REGISTRY_TYPE
+          + ConfigurationKeys.FILE_CONFIG_SPLIT_CHAR;
 
   // ###### service configuration ############### //
-  String KEY_SERVICE_PROJECT = FILE_CONFIG_KEY_PREFIX2 + "project";
+  String KEY_SERVICE_PROJECT = FILE_REGISTRY_KEY_PREFIX + "project";
 
-  String KEY_SERVICE_APPLICATION = FILE_CONFIG_KEY_PREFIX2 + "application";
+  String KEY_SERVICE_APPLICATION = FILE_REGISTRY_KEY_PREFIX + "application";
 
-  String KEY_SERVICE_NAME = FILE_CONFIG_KEY_PREFIX2 + "name";
+  String KEY_SERVICE_NAME = FILE_REGISTRY_KEY_PREFIX + "name";
 
-  String KEY_SERVICE_VERSION = FILE_CONFIG_KEY_PREFIX2 + "version";
+  String KEY_SERVICE_VERSION = FILE_REGISTRY_KEY_PREFIX + "version";
 
-  String KEY_SERVICE_ENVIRONMENT = FILE_CONFIG_KEY_PREFIX2 + "environment";
+  String KEY_SERVICE_ENVIRONMENT = FILE_REGISTRY_KEY_PREFIX + "environment";
 
-  /**/
   // ###### config center configuration ############### //
   String KEY_CONFIG_ADDRESSTYPE = FILE_CONFIG_KEY_PREFIX + "type";
 
@@ -53,9 +48,9 @@ public interface SeataServicecombKeys {
   String KEY_CONFIG_ADDRESS = FILE_CONFIG_KEY_PREFIX + "address";
 
   // ###### kie config center polling configuration############### //
-  String KEY_SERVICE_ENABLELONGPOLLING = FILE_CONFIG_KEY_PREFIX2 + "enableLongPolling";
+  String KEY_SERVICE_ENABLELONGPOLLING = FILE_REGISTRY_KEY_PREFIX + "enableLongPolling";
 
-  String KEY_SERVICE_POLLINGWAITSEC = FILE_CONFIG_KEY_PREFIX2 + "pollingWaitInSeconds";
+  String KEY_SERVICE_POLLINGWAITSEC = FILE_REGISTRY_KEY_PREFIX + "pollingWaitInSeconds";
 
   // ###### kie configuration############### //
 
@@ -72,50 +67,50 @@ public interface SeataServicecombKeys {
   String KEY_SERVICE_KIE_ENABLESERVICECONFIG = FILE_CONFIG_KEY_PREFIX + "enableServiceConfig";
 
   // ###### ssl configuration ############### //
-  String KEY_SSL_ENABLED = FILE_CONFIG_KEY_PREFIX2 + "ssl.enabled";
+  String KEY_SSL_ENABLED = FILE_REGISTRY_KEY_PREFIX + "ssl.enabled";
 
-  String KEY_SSL_ENGINE = FILE_CONFIG_KEY_PREFIX2 + "ssl.engine";
+  String KEY_SSL_ENGINE = FILE_REGISTRY_KEY_PREFIX + "ssl.engine";
 
-  String KEY_SSL_PROTOCOLS = FILE_CONFIG_KEY_PREFIX2 + "ssl.protocols";
+  String KEY_SSL_PROTOCOLS = FILE_REGISTRY_KEY_PREFIX + "ssl.protocols";
 
-  String KEY_SSL_CIPHERS = FILE_CONFIG_KEY_PREFIX2 + "ssl.ciphers";
+  String KEY_SSL_CIPHERS = FILE_REGISTRY_KEY_PREFIX + "ssl.ciphers";
 
-  String KEY_SSL_AUTH_PEER = FILE_CONFIG_KEY_PREFIX2 + "ssl.authPeer";
+  String KEY_SSL_AUTH_PEER = FILE_REGISTRY_KEY_PREFIX + "ssl.authPeer";
 
-  String KEY_SSL_CHECKCN_HOST = FILE_CONFIG_KEY_PREFIX2 + "ssl.checkCNHost";
+  String KEY_SSL_CHECKCN_HOST = FILE_REGISTRY_KEY_PREFIX + "ssl.checkCNHost";
 
-  String KEY_SSL_CHECKCN_WHITE = FILE_CONFIG_KEY_PREFIX2 + "ssl.checkCNWhite";
+  String KEY_SSL_CHECKCN_WHITE = FILE_REGISTRY_KEY_PREFIX + "ssl.checkCNWhite";
 
-  String KEY_SSL_CHECKCN_WHITE_FILE = FILE_CONFIG_KEY_PREFIX2 + "ssl.checkCNWhiteFile";
+  String KEY_SSL_CHECKCN_WHITE_FILE = FILE_REGISTRY_KEY_PREFIX + "ssl.checkCNWhiteFile";
 
-  String KEY_SSL_ALLOW_RENEGOTIATE = FILE_CONFIG_KEY_PREFIX2 + "ssl.allowRenegotiate";
+  String KEY_SSL_ALLOW_RENEGOTIATE = FILE_REGISTRY_KEY_PREFIX + "ssl.allowRenegotiate";
 
-  String KEY_SSL_STORE_PATH = FILE_CONFIG_KEY_PREFIX2 + "ssl.storePath";
+  String KEY_SSL_STORE_PATH = FILE_REGISTRY_KEY_PREFIX + "ssl.storePath";
 
-  String KEY_SSL_TRUST_STORE = FILE_CONFIG_KEY_PREFIX2 + "ssl.trustStore";
+  String KEY_SSL_TRUST_STORE = FILE_REGISTRY_KEY_PREFIX + "ssl.trustStore";
 
-  String KEY_SSL_TRUST_STORE_TYPE = FILE_CONFIG_KEY_PREFIX2 + "ssl.trustStoreType";
+  String KEY_SSL_TRUST_STORE_TYPE = FILE_REGISTRY_KEY_PREFIX + "ssl.trustStoreType";
 
-  String KEY_SSL_TRUST_STORE_VALUE = FILE_CONFIG_KEY_PREFIX2 + "ssl.trustStoreValue";
+  String KEY_SSL_TRUST_STORE_VALUE = FILE_REGISTRY_KEY_PREFIX + "ssl.trustStoreValue";
 
-  String KEY_SSL_KEYSTORE = FILE_CONFIG_KEY_PREFIX2 + "ssl.keyStore";
+  String KEY_SSL_KEYSTORE = FILE_REGISTRY_KEY_PREFIX + "ssl.keyStore";
 
-  String KEY_SSL_KEYSTORE_TYPE = FILE_CONFIG_KEY_PREFIX2 + "ssl.keyStoreType";
+  String KEY_SSL_KEYSTORE_TYPE = FILE_REGISTRY_KEY_PREFIX + "ssl.keyStoreType";
 
-  String KEY_SSL_KEYSTORE_VALUE = FILE_CONFIG_KEY_PREFIX2 + "ssl.keyStoreValue";
+  String KEY_SSL_KEYSTORE_VALUE = FILE_REGISTRY_KEY_PREFIX + "ssl.keyStoreValue";
 
-  String KEY_SSL_CRL = FILE_CONFIG_KEY_PREFIX2 + "ssl.crl";
+  String KEY_SSL_CRL = FILE_REGISTRY_KEY_PREFIX + "ssl.crl";
 
-  String KEY_SSL_SSL_CUSTOM_CLASS = FILE_CONFIG_KEY_PREFIX2 + "ssl.sslCustomClass";
+  String KEY_SSL_SSL_CUSTOM_CLASS = FILE_REGISTRY_KEY_PREFIX + "ssl.sslCustomClass";
 
   // ###### ak / ak configuration ############### //
-  String KEY_AK_SK_ENABLED = FILE_CONFIG_KEY_PREFIX2 + "credentials.enabled";
+  String KEY_AK_SK_ENABLED = FILE_REGISTRY_KEY_PREFIX + "credentials.enabled";
 
-  String KEY_AK_SK_ACCESS_KEY = FILE_CONFIG_KEY_PREFIX2 + "credentials.accessKey";
+  String KEY_AK_SK_ACCESS_KEY = FILE_REGISTRY_KEY_PREFIX + "credentials.accessKey";
 
-  String KEY_AK_SK_SECRET_KEY = FILE_CONFIG_KEY_PREFIX2 + "credentials.secretKey";
+  String KEY_AK_SK_SECRET_KEY = FILE_REGISTRY_KEY_PREFIX + "credentials.secretKey";
 
-  String KEY_AK_SK_CIPHER = FILE_CONFIG_KEY_PREFIX2 + "credentials.cipher";
+  String KEY_AK_SK_CIPHER = FILE_REGISTRY_KEY_PREFIX + "credentials.cipher";
 
-  String KEY_AK_SK_PROJECT = FILE_CONFIG_KEY_PREFIX2 + "credentials.project";
+  String KEY_AK_SK_PROJECT = FILE_REGISTRY_KEY_PREFIX + "credentials.project";
 }
