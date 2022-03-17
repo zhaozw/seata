@@ -1,3 +1,19 @@
+/*
+ *  Copyright 1999-2019 Seata.io Group.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package io.seata.config.servicecomb.client;
 
 import io.seata.config.servicecomb.client.auth.AuthHeaderProviders;
@@ -20,6 +36,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+/**
+ * @author zhaozhongwei22@163.com
+ */
 public class ServicecombConfigurationHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServicecombConfigurationHelper.class);
 
@@ -41,8 +60,7 @@ public class ServicecombConfigurationHelper {
 
     private Properties properties;
 
-    public ServicecombConfigurationHelper(Properties properties){
-
+    public ServicecombConfigurationHelper(Properties properties) {
 
         this.properties = properties;
         configConverter = initConfigConverter();
@@ -55,27 +73,26 @@ public class ServicecombConfigurationHelper {
     }
 
     /***/
-     private ConfigConverter initConfigConverter() {
-         String fileSources = properties.getProperty(CommonConfiguration.KEY_CONFIG_FILESOURCE, "");
-         if (StringUtils.isEmpty(fileSources)) {
+    private ConfigConverter initConfigConverter() {
+        String fileSources = properties.getProperty(CommonConfiguration.KEY_CONFIG_FILESOURCE, "");
+        if (StringUtils.isEmpty(fileSources)) {
             configConverter = new ConfigConverter(null);
-         } else {
+        } else {
             configConverter = new ConfigConverter(Arrays.asList(fileSources.split("，")));
-         }
-         return configConverter;
-     }
+        }
+        return configConverter;
+    }
 
     private void addConfigCenterProperties(Properties properties) {
-        isKie = properties.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESSTYPE, "kie").equals("kie");
+        isKie = "kie".equals(properties.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESSTYPE, "kie"));
         RequestConfig.Builder config = HttpTransportFactory.defaultRequestConfig();
 
         this.setTimeOut(config);
 
-        httpTransport = HttpTransportFactory
-                .createHttpTransport(AuthHeaderProviders.createSSLProperties(properties),
-                        AuthHeaderProviders.getRequestAuthHeaderProvider(properties), config.build());
+        httpTransport = HttpTransportFactory.createHttpTransport(AuthHeaderProviders.createSslProperties(properties),
+            AuthHeaderProviders.getRequestAuthHeaderProvider(properties), config.build());
 
-        //判断是否使用KIE作为配置中心
+        // 判断是否使用KIE作为配置中心
         if (isKie) {
             configKieClient(properties);
         } else {
@@ -83,9 +100,9 @@ public class ServicecombConfigurationHelper {
         }
     }
 
-
     private void configCenterClient(Properties properties) {
-        QueryConfigurationsRequest queryConfigurationsRequest = configCenterConfiguration.createQueryConfigurationsRequest();
+        QueryConfigurationsRequest queryConfigurationsRequest =
+            configCenterConfiguration.createQueryConfigurationsRequest();
         AddressManager addressManager = configCenterConfiguration.createAddressManager();
         if (addressManager == null) {
             LOGGER.warn("Config center address is not configured and will not enable dynamic config.");
@@ -107,7 +124,11 @@ public class ServicecombConfigurationHelper {
         configCenterManager.startConfigCenterManager();
     }
 
-    //use KIE as config center
+    /**
+     * use KIE as config center
+     * 
+     * @param properties
+     */
     private void configKieClient(Properties properties) {
 
         kieConfiguration = kieConfigConfiguration.createKieConfiguration();
@@ -120,8 +141,8 @@ public class ServicecombConfigurationHelper {
 
         KieClient kieClient = new KieClient(kieAddressManager, httpTransport, kieConfiguration);
 
-        kieConfigManager = new KieConfigManager(kieClient, EventManager.getEventBus(),
-                kieConfiguration, configConverter);
+        kieConfigManager =
+            new KieConfigManager(kieClient, EventManager.getEventBus(), kieConfiguration, configConverter);
         kieConfigManager.firstPull();
         kieConfigManager.startConfigKieManager();
     }
@@ -130,11 +151,10 @@ public class ServicecombConfigurationHelper {
         if (!isKie) {
             return;
         }
-        String test = properties.getProperty(CommonConfiguration.KEY_SERVICE_ENABLELONGPOLLING,
-                "true");
+        String test = properties.getProperty(CommonConfiguration.KEY_SERVICE_ENABLELONGPOLLING, "true");
         if (Boolean.parseBoolean(test)) {
-            int pollingWaitInSeconds = Integer.valueOf(properties.getProperty(CommonConfiguration.KEY_SERVICE_POLLINGWAITSEC,
-                    "30"));
+            int pollingWaitInSeconds =
+                Integer.valueOf(properties.getProperty(CommonConfiguration.KEY_SERVICE_POLLINGWAITSEC, "30"));
             config.setSocketTimeout(pollingWaitInSeconds * 1000 + 5000);
         }
     }

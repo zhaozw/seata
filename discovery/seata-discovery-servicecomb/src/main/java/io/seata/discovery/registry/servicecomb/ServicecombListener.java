@@ -13,12 +13,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package io.seata.discovery.registry.servicecomb;
 
 /**
- * The ServicecombListener
- * 因为是通过@Subscribe实现事件处理，所以这个接口只会在ServicecombRegistryServiceImpl类的定义中用到
- * @author zhaozw 361966639@qq.com
+ * The ServicecombListener 因为是通过@Subscribe实现事件处理，所以这个接口只会在ServicecombRegistryServiceImpl类的定义中用到
+ * 
+ * @author zhaozhongwei22@qq.com
  */
-public interface ServicecombListener {
-}
+public interface ServicecombListener {}
