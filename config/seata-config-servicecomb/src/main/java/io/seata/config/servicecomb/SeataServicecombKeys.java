@@ -19,6 +19,8 @@ package io.seata.config.servicecomb;
 import io.seata.common.ConfigurationKeys;
 
 /**
+ * servicecomb properties configuration path
+ *
  * @author zhaozhongwei22@163.com
  */
 public interface SeataServicecombKeys {

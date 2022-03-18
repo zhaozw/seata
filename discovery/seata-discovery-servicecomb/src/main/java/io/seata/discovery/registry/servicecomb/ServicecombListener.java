@@ -17,7 +17,7 @@
 package io.seata.discovery.registry.servicecomb;
 
 /**
- * The ServicecombListener 因为是通过@Subscribe实现事件处理，所以这个接口只会在ServicecombRegistryServiceImpl类的定义中用到
+ * The ServicecombListener servicecomb uses @Subscribe to listen event
  * 
  * @author zhaozhongwei22@qq.com
  */

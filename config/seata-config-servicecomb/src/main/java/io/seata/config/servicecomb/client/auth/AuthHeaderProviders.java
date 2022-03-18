@@ -46,36 +46,36 @@ public class AuthHeaderProviders {
 
         HttpConfiguration.SSLProperties sslProperties = new HttpConfiguration.SSLProperties();
         sslProperties
-            .setEnabled(Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_ENABLED, "false")));
+            .setEnabled(Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_ENABLED, CommonConfiguration.FALSE)));
         if (sslProperties.isEnabled()) {
             SSLOption option = new SSLOption();
-            option.setEngine(properties.getProperty(CommonConfiguration.KEY_SSL_ENGINE, "jdk"));
-            option.setProtocols(properties.getProperty(CommonConfiguration.KEY_SSL_PROTOCOLS, "TLSv1.2"));
+            option.setEngine(properties.getProperty(CommonConfiguration.KEY_SSL_ENGINE, CommonConfiguration.JDK));
+            option.setProtocols(properties.getProperty(CommonConfiguration.KEY_SSL_PROTOCOLS, CommonConfiguration.TLS));
             option.setCiphers(
                 properties.getProperty(CommonConfiguration.KEY_SSL_CIPHERS, CommonConfiguration.DEFAULT_CIPHERS));
             option.setAuthPeer(
-                Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_AUTH_PEER, "false")));
+                Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_AUTH_PEER, CommonConfiguration.FALSE)));
             option.setCheckCNHost(
-                Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_HOST, "false")));
+                Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_HOST, CommonConfiguration.FALSE)));
             option.setCheckCNWhite(
-                Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_WHITE, "false")));
+                Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_WHITE, CommonConfiguration.FALSE)));
             option.setCheckCNWhiteFile(
-                properties.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_WHITE_FILE, "white.list"));
+                properties.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_WHITE_FILE, CommonConfiguration.EMPTY));
             option.setAllowRenegociate(
-                Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_ALLOW_RENEGOTIATE, "false")));
-            option.setStorePath(properties.getProperty(CommonConfiguration.KEY_SSL_STORE_PATH, "internal"));
-            option.setKeyStore(properties.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE, "server.p12"));
-            option.setKeyStoreType(properties.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE_TYPE, "PKCS12"));
+                Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_ALLOW_RENEGOTIATE, CommonConfiguration.FALSE)));
+            option.setStorePath(properties.getProperty(CommonConfiguration.KEY_SSL_STORE_PATH, CommonConfiguration.INTERNAL));
+            option.setKeyStore(properties.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE, CommonConfiguration.EMPTY));
+            option.setKeyStoreType(properties.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE_TYPE, CommonConfiguration.PKCS12));
             option
-                .setKeyStoreValue(properties.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE_VALUE, "keyStoreValue"));
-            option.setTrustStore(properties.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE, "trust.jks"));
-            option.setTrustStoreType(properties.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE_TYPE, "JKS"));
+                .setKeyStoreValue(properties.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE_VALUE, CommonConfiguration.EMPTY));
+            option.setTrustStore(properties.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE, CommonConfiguration.EMPTY));
+            option.setTrustStoreType(properties.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE_TYPE, CommonConfiguration.EMPTY));
             option.setTrustStoreValue(
-                properties.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE_VALUE, "trustStoreValue"));
-            option.setCrl(properties.getProperty(CommonConfiguration.KEY_SSL_CRL, "revoke.crl"));
+                properties.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE_VALUE, CommonConfiguration.EMPTY));
+            option.setCrl(properties.getProperty(CommonConfiguration.KEY_SSL_CRL, CommonConfiguration.EMPTY));
 
             SSLCustom sslCustom =
-                SSLCustom.createSSLCustom(properties.getProperty(CommonConfiguration.KEY_SSL_SSL_CUSTOM_CLASS, ""));
+                SSLCustom.createSSLCustom(properties.getProperty(CommonConfiguration.KEY_SSL_SSL_CUSTOM_CLASS, CommonConfiguration.EMPTY));
             sslProperties.setSslOption(option);
             sslProperties.setSslCustom(sslCustom);
         }
@@ -96,7 +96,7 @@ public class AuthHeaderProviders {
             return project;
         }
         try {
-            return URLEncoder.encode(project, "UTF-8");
+            return URLEncoder.encode(project, CommonConfiguration.UTF_8);
         } catch (UnsupportedEncodingException e) {
             return project;
         }

@@ -20,10 +20,6 @@ package io.seata.discovery.registry.servicecomb.client;
  * @author zhaozhongwei22@163.com
  */
 public interface CommonConfiguration {
-    String DEFAULT_CIPHERS = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384," + "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256";
-
-    String DEFAULT_VALUE = "default";
-
     /**
      * service configuration
      */
@@ -115,4 +111,42 @@ public interface CommonConfiguration {
     String KEY_RBAC_NAME = "servicecomb.credentials.account.name";
 
     String KEY_RBAC_PASSWORD = "servicecomb.credentials.account.password";
+
+    /**
+     * default value
+     */
+    String DEFAULT_CIPHERS = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384," + "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256";
+    String TRUE = "true";
+    String FALSE = "false";
+    String DEFAULT = "default";
+    String JDK = "jdk";
+    String TLS = "TLSv1.2";
+    String PKCS12 = "PKCS12";
+    String INTERNAL = "internal";
+    /**
+     String JKS = "JKS";
+    String WHITE_LIST = "white.list";
+    String SERVER_P12 = "server.p12";
+    String KEY_STORE_VALUE = "keyStoreValue";
+    String TRUST_JKS = "trust.jks";
+    String TRUST_STORE_VALUE = "trustStoreValue";
+    String REVOKE_CRL = "revoke.crl";
+     */
+    String EMPTY = "";
+    String UTF_8 = "UTF-8";
+    String DEFAULT_VERSION = "1.0.0.0";
+    String DEFAULT_CONFIG_URL = "http://127.0.0.1:30110";
+    String DEFAULT_REGISTRY_URL = "http://127.0.0.1:30100";
+    String COMMA = ",";
+    String SEMICOLON = ";";
+    String COLON = ":";
+    String PUBLIC = "public";
+    String DEFAULT_SERVICE_POLLINGWAITSEC="10";
+    String DEFAULT_INSTANCE_PULL_INTERVAL="15";
+    String KIE = "kie";
+    String UP = "UP";
+    String DEFAULT_INSTANCE_HEALTH_CHECK_INTERVAL = "15";
+    String DEFAULT_INSTANCE_HEALTH_CHECK_TIMES = "3";
+    String REST_PROTOCOL = "rest://";
+    
 }

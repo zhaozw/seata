@@ -34,7 +34,13 @@ import org.apache.servicecomb.http.client.common.HttpTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Properties;
+
+import static io.seata.config.servicecomb.client.CommonConfiguration.DEFAULT_SERVICE_POLLINGWAITSEC;
+import static io.seata.config.servicecomb.client.CommonConfiguration.TRUE;
+
 
 /**
  * @author zhaozhongwei22@163.com
@@ -74,17 +80,17 @@ public class ServicecombConfigurationHelper {
 
     /***/
     private ConfigConverter initConfigConverter() {
-        String fileSources = properties.getProperty(CommonConfiguration.KEY_CONFIG_FILESOURCE, "");
+        String fileSources = properties.getProperty(CommonConfiguration.KEY_CONFIG_FILESOURCE, CommonConfiguration.EMPTY);
         if (StringUtils.isEmpty(fileSources)) {
             configConverter = new ConfigConverter(null);
         } else {
-            configConverter = new ConfigConverter(Arrays.asList(fileSources.split("，")));
+            configConverter = new ConfigConverter(Arrays.asList(fileSources.split(CommonConfiguration.COMMA)));
         }
         return configConverter;
     }
 
     private void addConfigCenterProperties(Properties properties) {
-        isKie = "kie".equals(properties.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESSTYPE, "kie"));
+        isKie = CommonConfiguration.KIE.equals(properties.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESSTYPE, CommonConfiguration.KIE));
         RequestConfig.Builder config = HttpTransportFactory.defaultRequestConfig();
 
         this.setTimeOut(config);
@@ -92,7 +98,6 @@ public class ServicecombConfigurationHelper {
         httpTransport = HttpTransportFactory.createHttpTransport(AuthHeaderProviders.createSslProperties(properties),
             AuthHeaderProviders.getRequestAuthHeaderProvider(properties), config.build());
 
-        // 判断是否使用KIE作为配置中心
         if (isKie) {
             configKieClient(properties);
         } else {
@@ -124,11 +129,6 @@ public class ServicecombConfigurationHelper {
         configCenterManager.startConfigCenterManager();
     }
 
-    /**
-     * use KIE as config center
-     * 
-     * @param properties
-     */
     private void configKieClient(Properties properties) {
 
         kieConfiguration = kieConfigConfiguration.createKieConfiguration();
@@ -151,10 +151,10 @@ public class ServicecombConfigurationHelper {
         if (!isKie) {
             return;
         }
-        String test = properties.getProperty(CommonConfiguration.KEY_SERVICE_ENABLELONGPOLLING, "true");
+        String test = properties.getProperty(CommonConfiguration.KEY_SERVICE_ENABLELONGPOLLING, TRUE);
         if (Boolean.parseBoolean(test)) {
             int pollingWaitInSeconds =
-                Integer.valueOf(properties.getProperty(CommonConfiguration.KEY_SERVICE_POLLINGWAITSEC, "30"));
+                Integer.valueOf(properties.getProperty(CommonConfiguration.KEY_SERVICE_POLLINGWAITSEC, DEFAULT_SERVICE_POLLINGWAITSEC));
             config.setSocketTimeout(pollingWaitInSeconds * 1000 + 5000);
         }
     }

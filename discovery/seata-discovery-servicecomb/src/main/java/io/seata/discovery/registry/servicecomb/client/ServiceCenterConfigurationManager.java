@@ -16,6 +16,7 @@
 
 package io.seata.discovery.registry.servicecomb.client;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.servicecomb.service.center.client.AddressManager;
 import org.apache.servicecomb.service.center.client.model.*;
 import org.slf4j.Logger;
@@ -47,18 +48,22 @@ public class ServiceCenterConfigurationManager {
         this.properties = properties;
     }
 
-    public Microservice createMicroservice() {
+    public Microservice createMicroservice(String frameworkName) {
         Microservice microservice = new Microservice();
-        microservice.setAppId(properties.getProperty(KEY_SERVICE_APPLICATION, "default"));
-        microservice.setServiceName(properties.getProperty(KEY_SERVICE_NAME, "defaultMicroserviceName"));
-        microservice.setVersion(properties.getProperty(KEY_SERVICE_VERSION, "1.0.0.0"));
-        microservice.setEnvironment(properties.getProperty(KEY_SERVICE_ENVIRONMENT, ""));
+        microservice.setAppId(properties.getProperty(KEY_SERVICE_APPLICATION, CommonConfiguration.DEFAULT));
+        microservice.setServiceName(properties.getProperty(KEY_SERVICE_NAME, CommonConfiguration.DEFAULT));
+        microservice.setVersion(properties.getProperty(KEY_SERVICE_VERSION, CommonConfiguration.DEFAULT_VERSION));
+        microservice.setEnvironment(properties.getProperty(KEY_SERVICE_ENVIRONMENT, CommonConfiguration.EMPTY));
         Framework framework = new Framework();
-        framework.setName("SEATA-DISCOVERY-SERVICECOMB");
+        framework.setName(frameworkName);
         StringBuilder version = new StringBuilder();
-        version.append("seata-discovery-servicecomb:");
-        version.append(ServiceCenterConfigurationManager.class.getPackage().getImplementationVersion());
-        version.append(";");
+        version.append(frameworkName.toLowercase()).append(CommonConfiguration.COLON);
+        if(StringUtils.isEmpty(ServiceCenterConfigurationManager.class.getPackage().getImplementationVersion())){
+            version.append(ServiceCenterConfigurationManager.class.getPackage().getImplementationVersion());
+        }else{
+            version.append(CommonConfiguration.DEFAULT_VERSION);
+        }
+        version.append(CommonConfiguration.SEMICOLON);
         framework.setVersion(version.toString());
         microservice.setFramework(framework);
         return microservice;
@@ -66,19 +71,19 @@ public class ServiceCenterConfigurationManager {
 
     public MicroserviceInstance createMicroserviceInstance() {
         MicroserviceInstance instance = new MicroserviceInstance();
-        instance.setStatus(MicroserviceInstanceStatus.valueOf(properties.getProperty(KEY_INSTANCE_ENVIRONMENT, "UP")));
+        instance.setStatus(MicroserviceInstanceStatus.valueOf(properties.getProperty(KEY_INSTANCE_ENVIRONMENT, CommonConfiguration.UP)));
         HealthCheck healthCheck = new HealthCheck();
         healthCheck.setMode(HealthCheckMode.pull);
-        healthCheck.setInterval(Integer.parseInt(properties.getProperty(KEY_INSTANCE_HEALTH_CHECK_INTERVAL, "15")));
-        healthCheck.setTimes(Integer.parseInt(properties.getProperty(KEY_INSTANCE_HEALTH_CHECK_TIMES, "3")));
+        healthCheck.setInterval(Integer.parseInt(properties.getProperty(KEY_INSTANCE_HEALTH_CHECK_INTERVAL, CommonConfiguration.DEFAULT_INSTANCE_HEALTH_CHECK_INTERVAL)));
+        healthCheck.setTimes(Integer.parseInt(properties.getProperty(KEY_INSTANCE_HEALTH_CHECK_TIMES, CommonConfiguration.DEFAULT_INSTANCE_HEALTH_CHECK_TIMES)));
         instance.setHealthCheck(healthCheck);
         return instance;
     }
 
     public AddressManager createAddressManager() {
-        String address = properties.getProperty(KEY_REGISTRY_ADDRESS, "http://127.0.0.1:30100");
-        String project = properties.getProperty(KEY_SERVICE_PROJECT, "default");
+        String address = properties.getProperty(KEY_REGISTRY_ADDRESS, CommonConfiguration.DEFAULT_REGISTRY_URL);
+        String project = properties.getProperty(KEY_SERVICE_PROJECT, CommonConfiguration.DEFAULT);
         LOGGER.info("Using service center, address={}.", address);
-        return new AddressManager(project, Arrays.asList(address.split(",")));
+        return new AddressManager(project, Arrays.asList(address.split(CommonConfiguration.COMMA)));
     }
 }

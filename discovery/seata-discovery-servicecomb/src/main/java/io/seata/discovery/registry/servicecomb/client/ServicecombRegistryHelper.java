@@ -36,8 +36,6 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * 这个类主要是把Servicecomb 注册中心的细节单独出来
- * 
  * @author zhaozhongwei22@163.com
  */
 public class ServicecombRegistryHelper {
@@ -60,8 +58,11 @@ public class ServicecombRegistryHelper {
 
     private boolean enableDiscovery = true;
 
-    public ServicecombRegistryHelper(Properties properties) {
+    private final String frameworkName;
+
+    public ServicecombRegistryHelper(Properties properties,String frameworkName) {
         this.properties = properties;
+        this.frameworkName = frameworkName;
         serviceCenterConfigurationManager = new ServiceCenterConfigurationManager(properties);
     }
 
@@ -85,10 +86,10 @@ public class ServicecombRegistryHelper {
         serviceCenterRegistration.setHeartBeatInterval(microserviceInstance.getHealthCheck().getInterval());
         serviceCenterRegistration.startRegistration();
 
-        if ("true".equals(properties.getProperty(CommonConfiguration.KEY_REGISTRY_WATCH, "false"))) {
+        if (CommonConfiguration.TRUE.equals(properties.getProperty(CommonConfiguration.KEY_REGISTRY_WATCH, CommonConfiguration.FALSE))) {
             watch = new ServiceCenterWatch(serviceCenterConfigurationManager.createAddressManager(),
                 AuthHeaderProviders.createSslProperties(properties),
-                AuthHeaderProviders.getRequestAuthHeaderProvider(properties), "default", Collections.EMPTY_MAP,
+                AuthHeaderProviders.getRequestAuthHeaderProvider(properties), CommonConfiguration.DEFAULT, Collections.EMPTY_MAP,
                 EventManager.getEventBus());
         }
         EventManager.register(this);
@@ -106,15 +107,12 @@ public class ServicecombRegistryHelper {
                 if (client == null) {
 
                     try {
-                        getClientFromSpringCloud();
-                        if (client == null) {
-                            AddressManager addressManager = serviceCenterConfigurationManager.createAddressManager();
-                            HttpConfiguration.SSLProperties sslProperties =
-                                AuthHeaderProviders.createSslProperties(properties);
-                            client = new ServiceCenterClient(addressManager, sslProperties,
-                                AuthHeaderProviders.getRequestAuthHeaderProvider(properties), "default", null);
-                        }
-                        microservice = serviceCenterConfigurationManager.createMicroservice();
+                        AddressManager addressManager = serviceCenterConfigurationManager.createAddressManager();
+                        HttpConfiguration.SSLProperties sslProperties =
+                            AuthHeaderProviders.createSslProperties(properties);
+                        client = new ServiceCenterClient(addressManager, sslProperties,
+                            AuthHeaderProviders.getRequestAuthHeaderProvider(properties), CommonConfiguration.DEFAULT, null);
+                        microservice = serviceCenterConfigurationManager.createMicroservice(frameworkName);
 
                     } catch (Exception e) {
                         throw new IllegalStateException(e);
@@ -125,12 +123,6 @@ public class ServicecombRegistryHelper {
         return client;
     }
 
-    private void getClientFromSpringCloud() {
-        // TODO ?
-        // 可不可以通过反射或者单例获取ServiceCenterClient，否则在客户端会被实例化两次，而且配置文件里面也需要配置两次一个是在spring.cloud.servicecomb下面，一个是在seata下面
-        // 如果再对接一个其它的需要注册中心的框架，是否会重复3次？感觉这个类里面的功能都应该封装到SDK里面会好一些
-    }
-
     @Subscribe
     public void
         onMicroserviceInstanceRegistrationEvent(RegistrationEvents.MicroserviceInstanceRegistrationEvent event) {
@@ -139,7 +131,7 @@ public class ServicecombRegistryHelper {
                 serviceCenterDiscovery = new ServiceCenterDiscovery(client, EventManager.getEventBus());
                 serviceCenterDiscovery.updateMyselfServiceId(microservice.getServiceId());
                 serviceCenterDiscovery.setPollInterval(
-                    Integer.parseInt(properties.getProperty(CommonConfiguration.KEY_INSTANCE_PULL_INTERVAL, "15")));
+                    Integer.parseInt(properties.getProperty(CommonConfiguration.KEY_INSTANCE_PULL_INTERVAL, CommonConfiguration.DEFAULT_INSTANCE_PULL_INTERVAL)));
                 serviceCenterDiscovery.startDiscovery();
             } else {
                 serviceCenterDiscovery.updateMyselfServiceId(microservice.getServiceId());

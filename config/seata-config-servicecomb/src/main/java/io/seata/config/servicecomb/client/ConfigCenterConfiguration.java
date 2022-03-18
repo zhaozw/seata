@@ -38,22 +38,22 @@ public class ConfigCenterConfiguration {
     }
 
     public AddressManager createAddressManager() {
-        String address = properties.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESS, "");
+        String address = properties.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESS, CommonConfiguration.EMPTY);
         if (StringUtils.isEmpty(address)) {
             return null;
         }
-        String project = properties.getProperty(CommonConfiguration.KEY_SERVICE_PROJECT, "default");
+        String project = properties.getProperty(CommonConfiguration.KEY_SERVICE_PROJECT, CommonConfiguration.DEFAULT);
         LOGGER.info("Using config center, address={}", address);
-        return new AddressManager(project, Arrays.asList(address.split(",")));
+        return new AddressManager(project, Arrays.asList(address.split(CommonConfiguration.COMMA)));
     }
 
     public QueryConfigurationsRequest createQueryConfigurationsRequest() {
         QueryConfigurationsRequest request = new QueryConfigurationsRequest();
-        request.setApplication(properties.getProperty(CommonConfiguration.KEY_SERVICE_APPLICATION, "default"));
-        request.setServiceName(properties.getProperty(CommonConfiguration.KEY_SERVICE_NAME, "defaultMicroserviceName"));
-        request.setVersion(properties.getProperty(CommonConfiguration.KEY_SERVICE_VERSION, "1.0.0.0"));
-        request.setEnvironment(properties.getProperty(CommonConfiguration.KEY_SERVICE_ENVIRONMENT, ""));
-        // 需要设置为 null， 并且 query 参数为 revision=null 才会返回 revision 信息。 revision = 是不行的。
+        request.setApplication(properties.getProperty(CommonConfiguration.KEY_SERVICE_APPLICATION, CommonConfiguration.DEFAULT));
+        request.setServiceName(properties.getProperty(CommonConfiguration.KEY_SERVICE_NAME, CommonConfiguration.DEFAULT));
+        request.setVersion(properties.getProperty(CommonConfiguration.KEY_SERVICE_VERSION, CommonConfiguration.DEFAULT_VERSION));
+        request.setEnvironment(properties.getProperty(CommonConfiguration.KEY_SERVICE_ENVIRONMENT, CommonConfiguration.EMPTY));
+        // first time revision must be null,not empty string
         request.setRevision(null);
         return request;
     }

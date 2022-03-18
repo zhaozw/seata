@@ -23,20 +23,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * on seata server side,create new EventBus instance,on client size,use the existing EventBus
  * @author zhaozhongwei22@163.com
  */
 public class EventManager {
+    private static final String HUAWEI_CLOUD_EVENT_MANAGER = "com.huaweicloud.common.event.EventManager";
+    private static final String DUBBO_EVENT_MANAGER = "com.huaweicloud.dubbo.common.EventManager";
+    private static final String SERVICECOMB_EVENT_MANAGER = "org.apache.servicecomb.foundation.common.event.EventManager";
+    private static final String EVENT_BUS = "eventBus";
     private static EventBus eventBus;
     private static List<String> eventBusNames = new ArrayList<>();
 
     static {
-        eventBusNames.add("com.huaweicloud.common.event.EventManager");
-        eventBusNames.add("com.huaweicloud.dubbo.common.EventManager");
-        eventBusNames.add("org.apache.servicecomb.foundation.common.event.EventManager");
+        eventBusNames.add(HUAWEI_CLOUD_EVENT_MANAGER);
+        eventBusNames.add(DUBBO_EVENT_MANAGER);
+        eventBusNames.add(SERVICECOMB_EVENT_MANAGER);
         for (String className : eventBusNames) {
             try {
                 Class<?> huaweiEventManagerClazz = Class.forName(className);
-                Field busField = huaweiEventManagerClazz.getDeclaredField("eventBus");
+                Field busField = huaweiEventManagerClazz.getDeclaredField(EVENT_BUS);
                 busField.setAccessible(true);
                 eventBus = (EventBus)busField.get(null);
                 break;

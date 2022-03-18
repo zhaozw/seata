@@ -44,6 +44,8 @@ import static io.seata.discovery.registry.servicecomb.client.CommonConfiguration
 public class ServicecombRegistryServiceImpl implements RegistryService<ServicecombListener> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServicecombRegistryServiceImpl.class);
+
+    private static final String FRAMEWORK_NAME = "SEATA-DISCOVERY-SERVICECOMB";
     private static final Object LOCK_OBJ = new Object();
     private static final Configuration FILE_CONFIG = ConfigurationFactory.CURRENT_FILE_INSTANCE;
     private static volatile ServicecombRegistryServiceImpl instance;
@@ -56,7 +58,7 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
 
     private ServicecombRegistryServiceImpl() {
         properties = createProperties();
-        ServicecombRegistryHelper = new ServicecombRegistryHelper(properties);
+        ServicecombRegistryHelper = new ServicecombRegistryHelper(properties, FRAMEWORK_NAME);
         EventManager.register(this);
     }
 
@@ -76,12 +78,6 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
         return instance;
     }
 
-    /**
-     * seata 服务端调用把自己注册到注册中心
-     * 
-     * @param address the address
-     * @throws Exception
-     */
     @Override
     public void register(InetSocketAddress address) throws Exception {
         NetUtil.validAddress(address);
@@ -91,15 +87,10 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
     }
 
     private String getEndPoint(InetSocketAddress address) {
-        return "rest://" + address.getAddress().getHostAddress() + ":" + address.getPort();
+        return CommonConfiguration.REST_PROTOCOL + address.getAddress().getHostAddress() + CommonConfiguration.COLON
+            + address.getPort();
     }
 
-    /**
-     * seata 服务端调用把自己从注册中心注销
-     * 
-     * @param address the address
-     * @throws Exception
-     */
     @Override
     public void unregister(InetSocketAddress address) throws Exception {
         NetUtil.validAddress(address);
@@ -107,37 +98,12 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
         EventManager.unregister(this);
     }
 
-    /**
-     * 由于事件监听用@Subscribe 实现，所以这个方法不会被调用
-     * 
-     * @param cluster the cluster
-     * @param listener the listener
-     * @throws Exception
-     */
     @Override
-    public void subscribe(String cluster, ServicecombListener listener) throws Exception {
-        // LOGGER.info("subscribe");
-    }
+    public void subscribe(String cluster, ServicecombListener listener) throws Exception {}
 
-    /**
-     * 由于事件监听用@Subscribe 实现，所以这个方法不会被调用
-     * 
-     * @param cluster the cluster
-     * @param listener the listener
-     * @throws Exception
-     */
     @Override
-    public void unsubscribe(String cluster, ServicecombListener listener) throws Exception {
-        // LOGGER.info("unsubscribe");
-    }
+    public void unsubscribe(String cluster, ServicecombListener listener) throws Exception {}
 
-    /**
-     * seata客户端根据key ${service.vgroup-mapping.default_tx_group} 的值去注册中心查找对应服务器的地址
-     * 
-     * @param key the key
-     * @return
-     * @throws Exception
-     */
     @Override
     public List<InetSocketAddress> lookup(String key) throws Exception {
         String clusterName = getServiceGroup(key);
@@ -155,9 +121,8 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
                         List<InetSocketAddress> newAddressList = new ArrayList<>();
                         MicroservicesResponse microservicesResponse = client.getMicroserviceList();
                         microservicesResponse.getServices().forEach(service -> {
-                            // 先不考虑运行 crossAPP 的场景， 只允许同应用发现
-                            if (service.getAppId().equals(
-                                properties.getProperty(KEY_SERVICE_APPLICATION, CommonConfiguration.DEFAULT_VALUE))
+                            if (service.getAppId()
+                                .equals(properties.getProperty(KEY_SERVICE_APPLICATION, CommonConfiguration.DEFAULT))
                                 && service.getServiceName().equals(clusterName)) {
 
                                 MicroserviceInstancesResponse instancesResponse =
@@ -185,18 +150,15 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
     }
 
     @Override
-    public void close() throws Exception {
-
-    }
+    public void close() throws Exception {}
 
     /**
-     * 实例发现事件处理
+     * listen InstanceChangedEvent event,servicecomb uses @Subscribe to deal with event instead of listener class
      * 
      * @param event
      */
     @Subscribe
     public void onInstanceChangedEvent(DiscoveryEvents.InstanceChangedEvent event) {
-        // 只记录seata server的实例
         if (!CURRENT_ADDRESS_MAP.containsKey(event.getServiceName())) {
             return;
         }
@@ -325,6 +287,31 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
         if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_CIPHER))) {
             properties.setProperty(CommonConfiguration.KEY_AK_SK_CIPHER,
                 FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_CIPHER));
+        }
+
+        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_ENVIRONMENT))) {
+            properties.setProperty(CommonConfiguration.KEY_INSTANCE_ENVIRONMENT,
+                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_ENVIRONMENT));
+        }
+        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_PULL_INTERVAL))) {
+            properties.setProperty(CommonConfiguration.KEY_INSTANCE_PULL_INTERVAL,
+                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_PULL_INTERVAL));
+        }
+        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_HEALTH_CHECK_INTERVAL))) {
+            properties.setProperty(CommonConfiguration.KEY_INSTANCE_HEALTH_CHECK_INTERVAL,
+                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_HEALTH_CHECK_INTERVAL));
+        }
+        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_HEALTH_CHECK_TIMES))) {
+            properties.setProperty(CommonConfiguration.KEY_INSTANCE_HEALTH_CHECK_TIMES,
+                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_HEALTH_CHECK_TIMES));
+        }
+        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_REGISTRY_ADDRESS))) {
+            properties.setProperty(CommonConfiguration.KEY_REGISTRY_ADDRESS,
+                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_REGISTRY_ADDRESS));
+        }
+        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_REGISTRY_WATCH))) {
+            properties.setProperty(CommonConfiguration.KEY_REGISTRY_WATCH,
+                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_REGISTRY_WATCH));
         }
         return properties;
     }
