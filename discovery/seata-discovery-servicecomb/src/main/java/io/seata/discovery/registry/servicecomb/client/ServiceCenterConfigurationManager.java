@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Properties;
 
 import static io.seata.discovery.registry.servicecomb.client.CommonConfiguration.KEY_INSTANCE_ENVIRONMENT;
@@ -57,7 +58,7 @@ public class ServiceCenterConfigurationManager {
         Framework framework = new Framework();
         framework.setName(frameworkName);
         StringBuilder version = new StringBuilder();
-        version.append(frameworkName.toLowercase()).append(CommonConfiguration.COLON);
+        version.append(frameworkName.toLowerCase(Locale.ROOT)).append(CommonConfiguration.COLON);
         if(StringUtils.isEmpty(ServiceCenterConfigurationManager.class.getPackage().getImplementationVersion())){
             version.append(ServiceCenterConfigurationManager.class.getPackage().getImplementationVersion());
         }else{
