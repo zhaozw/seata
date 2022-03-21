@@ -104,19 +104,6 @@ public interface CommonConfiguration {
     String KEY_SSL_SSL_CUSTOM_CLASS = "servicecomb.ssl.sslCustomClass";
 
     /**
-     * ak / ak configuration
-     */
-    String KEY_AK_SK_ENABLED = "servicecomb.credentials.enabled";
-
-    String KEY_AK_SK_ACCESS_KEY = "servicecomb.credentials.accessKey";
-
-    String KEY_AK_SK_SECRET_KEY = "servicecomb.credentials.secretKey";
-
-    String KEY_AK_SK_CIPHER = "servicecomb.credentials.cipher";
-
-    String KEY_AK_SK_PROJECT = "servicecomb.credentials.project";
-
-    /**
      * RBAC configuration
      */
     String KEY_RBAC_NAME = "servicecomb.credentials.account.name";
@@ -134,15 +121,6 @@ public interface CommonConfiguration {
     String TLS = "TLSv1.2";
     String PKCS12 = "PKCS12";
     String INTERNAL = "internal";
-    /**
-     String JKS = "JKS";
-    String WHITE_LIST = "white.list";
-    String SERVER_P12 = "server.p12";
-    String KEY_STORE_VALUE = "keyStoreValue";
-    String TRUST_JKS = "trust.jks";
-    String TRUST_STORE_VALUE = "trustStoreValue";
-    String REVOKE_CRL = "revoke.crl";
-     */
     String EMPTY = "";
     String UTF_8 = "UTF-8";
     String DEFAULT_VERSION = "1.0.0.0";

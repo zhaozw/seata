@@ -15,9 +15,9 @@
  */
 package io.seata.spring.boot.autoconfigure;
 
-import java.util.HashMap;
-
 import io.seata.config.ConfigurationKeys;
+
+import java.util.HashMap;
 
 /**
  * @author xingfudeshi@gmail.com
@@ -56,10 +56,10 @@ public interface StarterConstants {
     String REGISTRY_SOFA_PREFIX = REGISTRY_PREFIX + ".sofa";
     String REGISTRY_CUSTOM_PREFIX = REGISTRY_PREFIX + ".custom";
     String REGISTRY_SERVICECOMB_PREFIX = REGISTRY_PREFIX + ".servicecomb";
-    String CONFIG_SERVICECOMB_HEALTHCHECK_PREFIX = REGISTRY_SERVICECOMB_PREFIX + ".healthcheck";
-    String CONFIG_SERVICECOMB_SSL_PREFIX = REGISTRY_SERVICECOMB_PREFIX + ".ssl";
-    String CONFIG_SERVICECOMB_PULL_PREFIX = REGISTRY_SERVICECOMB_PREFIX + ".pull";
-    String CONFIG_SERVICECOMB_CREDENTIALS_PREFIX = REGISTRY_SERVICECOMB_PREFIX + ".credentials";
+    String REGISTRY_SERVICECOMB_HEALTHCHECK_PREFIX = REGISTRY_SERVICECOMB_PREFIX + ".healthcheck";
+    String REGISTRY_SERVICECOMB_SSL_PREFIX = REGISTRY_SERVICECOMB_PREFIX + ".ssl";
+    String REGISTRY_SERVICECOMB_PULL_PREFIX = REGISTRY_SERVICECOMB_PREFIX + ".pull";
+    String REGISTRY_SERVICECOMB_ACCOUNT_PREFIX = REGISTRY_SERVICECOMB_PREFIX + ".credentials.account";
 
     String CONFIG_PREFIX = SEATA_PREFIX + ".config";
     String CONFIG_NACOS_PREFIX = CONFIG_PREFIX + ".nacos";

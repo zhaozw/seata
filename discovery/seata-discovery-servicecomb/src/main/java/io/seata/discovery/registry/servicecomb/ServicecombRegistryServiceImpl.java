@@ -110,9 +110,9 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
         if (clusterName == null) {
             return null;
         }
-        if (!CURRENT_ADDRESS_MAP.containsKey(clusterName) || CURRENT_ADDRESS_MAP.get(clusterName).isEmpty()) {
+        if (!CURRENT_ADDRESS_MAP.containsKey(clusterName)) {
             synchronized (LOCK_OBJ) {
-                if (!CURRENT_ADDRESS_MAP.containsKey(clusterName) || CURRENT_ADDRESS_MAP.get(clusterName).isEmpty()) {
+                if (!CURRENT_ADDRESS_MAP.containsKey(clusterName)) {
                     ServicecombRegistryHelper.setEnableDiscovery(false);
                     ServiceCenterClient client = ServicecombRegistryHelper.initClient();
                     List<String> clusters = new ArrayList<>();
@@ -183,10 +183,6 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
         if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_PROJECT))) {
             properties.setProperty(CommonConfiguration.KEY_SERVICE_PROJECT,
                 FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_PROJECT));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_ENABLED))) {
-            properties.setProperty(CommonConfiguration.KEY_AK_SK_ENABLED,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_ENABLED));
         }
         if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION))) {
             properties.setProperty(CommonConfiguration.KEY_SERVICE_APPLICATION,
@@ -276,19 +272,6 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
             properties.setProperty(CommonConfiguration.KEY_SSL_SSL_CUSTOM_CLASS,
                 FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_SSL_CUSTOM_CLASS));
         }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_ACCESS_KEY))) {
-            properties.setProperty(CommonConfiguration.KEY_AK_SK_ACCESS_KEY,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_ACCESS_KEY));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_SECRET_KEY))) {
-            properties.setProperty(CommonConfiguration.KEY_AK_SK_SECRET_KEY,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_SECRET_KEY));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_CIPHER))) {
-            properties.setProperty(CommonConfiguration.KEY_AK_SK_CIPHER,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_CIPHER));
-        }
-
         if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_ENVIRONMENT))) {
             properties.setProperty(CommonConfiguration.KEY_INSTANCE_ENVIRONMENT,
                 FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_ENVIRONMENT));
@@ -312,6 +295,14 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
         if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_REGISTRY_WATCH))) {
             properties.setProperty(CommonConfiguration.KEY_REGISTRY_WATCH,
                 FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_REGISTRY_WATCH));
+        }
+        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_NAME))) {
+            properties.setProperty(CommonConfiguration.KEY_RBAC_NAME,
+                    FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_NAME));
+        }
+        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_PASSWORD))) {
+            properties.setProperty(CommonConfiguration.KEY_RBAC_PASSWORD,
+                    FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_PASSWORD));
         }
         return properties;
     }

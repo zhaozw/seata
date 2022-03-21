@@ -54,13 +54,13 @@ public enum RegistryType {
      */
     Sofa,
     /**
-     * Custom registry type
-     */
-    Custom,
-    /**
      * Servicecomb registry type
      */
-    Servicecomb;
+    Servicecomb,
+    /**
+     * Custom registry type
+     */
+    Custom;
 
     /**
      * Gets type.

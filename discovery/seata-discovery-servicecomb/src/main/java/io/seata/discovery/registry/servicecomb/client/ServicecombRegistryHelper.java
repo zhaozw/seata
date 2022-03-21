@@ -18,6 +18,7 @@ package io.seata.discovery.registry.servicecomb.client;
 
 import com.google.common.eventbus.Subscribe;
 import io.seata.discovery.registry.servicecomb.client.auth.AuthHeaderProviders;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.servicecomb.http.client.common.HttpConfiguration;
 import org.apache.servicecomb.service.center.client.AddressManager;
 import org.apache.servicecomb.service.center.client.RegistrationEvents;
@@ -28,6 +29,8 @@ import org.apache.servicecomb.service.center.client.ServiceCenterWatch;
 import org.apache.servicecomb.service.center.client.model.Microservice;
 import org.apache.servicecomb.service.center.client.model.MicroserviceInstance;
 import org.apache.servicecomb.service.center.client.model.ServiceCenterConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -39,6 +42,8 @@ import java.util.Properties;
  * @author zhaozhongwei22@163.com
  */
 public class ServicecombRegistryHelper {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServicecombRegistryHelper.class);
 
     private ServiceCenterClient client;
 
@@ -89,15 +94,27 @@ public class ServicecombRegistryHelper {
         if (CommonConfiguration.TRUE.equals(properties.getProperty(CommonConfiguration.KEY_REGISTRY_WATCH, CommonConfiguration.FALSE))) {
             watch = new ServiceCenterWatch(serviceCenterConfigurationManager.createAddressManager(),
                 AuthHeaderProviders.createSslProperties(properties),
-                AuthHeaderProviders.getRequestAuthHeaderProvider(properties), CommonConfiguration.DEFAULT, Collections.EMPTY_MAP,
+                AuthHeaderProviders.getRequestAuthHeaderProvider(client, properties), CommonConfiguration.DEFAULT, Collections.EMPTY_MAP,
                 EventManager.getEventBus());
         }
         EventManager.register(this);
     }
 
     public void unregister(String endPoint) {
+
         if (serviceCenterRegistration != null) {
             serviceCenterRegistration.stop();
+            if (!StringUtils.isEmpty(microserviceInstance.getInstanceId())) {
+                try {
+                    client.deleteMicroserviceInstance(microservice.getServiceId(),
+                            microserviceInstance.getInstanceId());
+                } catch (Exception e) {
+                    LOGGER.error("delete microservice failed. ", e);
+                }
+            }
+        }
+        if (watch != null) {
+            watch.stop();
         }
     }
 
@@ -111,7 +128,7 @@ public class ServicecombRegistryHelper {
                         HttpConfiguration.SSLProperties sslProperties =
                             AuthHeaderProviders.createSslProperties(properties);
                         client = new ServiceCenterClient(addressManager, sslProperties,
-                            AuthHeaderProviders.getRequestAuthHeaderProvider(properties), CommonConfiguration.DEFAULT, null);
+                            AuthHeaderProviders.getRequestAuthHeaderProvider(client, properties), CommonConfiguration.DEFAULT, null);
                         microservice = serviceCenterConfigurationManager.createMicroservice(frameworkName);
 
                     } catch (Exception e) {

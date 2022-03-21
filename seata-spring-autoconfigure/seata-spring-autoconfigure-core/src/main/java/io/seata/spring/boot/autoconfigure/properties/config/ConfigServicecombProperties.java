@@ -29,11 +29,6 @@ public class ConfigServicecombProperties {
     private String address;
     private String type;
     private String dataId;
-    /*
-    private String application = "";
-    private String name = "default";
-    private String project = "default";
-     */
     private String customLabel;
     private String customLabelValue;
     private String enableCustomConfig;
@@ -95,7 +90,6 @@ public class ConfigServicecombProperties {
         return this;
     }
 
-
     public String getAddress() {
         return address;
     }
@@ -114,7 +108,6 @@ public class ConfigServicecombProperties {
         return this;
     }
 
-
     public String getType() {
         return type;
     }
@@ -123,32 +116,4 @@ public class ConfigServicecombProperties {
         this.type = type;
         return this;
     }
-    /*
-
-    public String getApplication() {
-        return application;
-    }
-    public ConfigServicecombProperties setApplication(String application) {
-        this.application = application;
-        return this;
-    }
-    public String getProject() {
-        return project;
-    }
-
-    public ConfigServicecombProperties setProject(String project) {
-        this.project = project;
-        return this;
-    }
-    public String getName() {
-        return name;
-    }
-
-    public ConfigServicecombProperties setName(String name) {
-        this.name = name;
-        return this;
-    }
-
-     */
-
 }

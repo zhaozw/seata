@@ -23,6 +23,7 @@ import org.apache.servicecomb.foundation.ssl.SSLCustom;
 import org.apache.servicecomb.foundation.ssl.SSLOption;
 import org.apache.servicecomb.http.client.auth.RequestAuthHeaderProvider;
 import org.apache.servicecomb.http.client.common.HttpConfiguration;
+import org.apache.servicecomb.service.center.client.ServiceCenterClient;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -37,8 +38,9 @@ import java.util.Properties;
  */
 public class AuthHeaderProviders {
 
-  public static RequestAuthHeaderProvider getRequestAuthHeaderProvider(Properties properties) {
+  public static RequestAuthHeaderProvider getRequestAuthHeaderProvider(ServiceCenterClient client, Properties properties) {
       List<AuthHeaderProvider> authHeaderProviders = new ArrayList<>();
+      authHeaderProviders.add(new RBACRequestAuthHeaderProvider(client, properties));
       return getRequestAuthHeaderProvider(authHeaderProviders);
   }
 

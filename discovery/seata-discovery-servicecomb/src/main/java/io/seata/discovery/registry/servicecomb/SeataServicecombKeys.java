@@ -97,15 +97,9 @@ public interface SeataServicecombKeys {
     String KEY_SSL_SSL_CUSTOM_CLASS = REGISTRY_KEY_PREFIX + "ssl.sslCustomClass";
 
     /**
-     * ak / ak configuration
+     * RBAC configuration
      */
-    String KEY_AK_SK_ENABLED = REGISTRY_KEY_PREFIX + "credentials.enabled";
+    String KEY_RBAC_NAME = REGISTRY_KEY_PREFIX + "credentials.account.name";
 
-    String KEY_AK_SK_ACCESS_KEY = REGISTRY_KEY_PREFIX + "credentials.accessKey";
-
-    String KEY_AK_SK_SECRET_KEY = REGISTRY_KEY_PREFIX + "credentials.secretKey";
-
-    String KEY_AK_SK_CIPHER = REGISTRY_KEY_PREFIX + "credentials.cipher";
-
-    String KEY_AK_SK_PROJECT = REGISTRY_KEY_PREFIX + "credentials.project";
+    String KEY_RBAC_PASSWORD = REGISTRY_KEY_PREFIX + "credentials.account.password";
 }

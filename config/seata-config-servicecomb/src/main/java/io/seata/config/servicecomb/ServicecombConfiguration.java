@@ -225,10 +225,6 @@ public class ServicecombConfiguration extends AbstractConfiguration {
             properties.setProperty(CommonConfiguration.KEY_SERVICE_PROJECT,
                 FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_PROJECT));
         }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_ENABLED))) {
-            properties.setProperty(CommonConfiguration.KEY_AK_SK_ENABLED,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_ENABLED));
-        }
         if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION))) {
             properties.setProperty(CommonConfiguration.KEY_SERVICE_APPLICATION,
                 FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION));
@@ -360,18 +356,6 @@ public class ServicecombConfiguration extends AbstractConfiguration {
         if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_SSL_CUSTOM_CLASS))) {
             properties.setProperty(CommonConfiguration.KEY_SSL_SSL_CUSTOM_CLASS,
                 FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_SSL_CUSTOM_CLASS));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_ACCESS_KEY))) {
-            properties.setProperty(CommonConfiguration.KEY_AK_SK_ACCESS_KEY,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_ACCESS_KEY));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_SECRET_KEY))) {
-            properties.setProperty(CommonConfiguration.KEY_AK_SK_SECRET_KEY,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_SECRET_KEY));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_CIPHER))) {
-            properties.setProperty(CommonConfiguration.KEY_AK_SK_CIPHER,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_AK_SK_CIPHER));
         }
         return properties;
     }
