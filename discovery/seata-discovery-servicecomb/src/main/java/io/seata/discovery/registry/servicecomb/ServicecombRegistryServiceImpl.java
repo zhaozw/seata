@@ -142,7 +142,7 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
                         });
                         CURRENT_ADDRESS_MAP.put(clusterName, newAddressList);
                     } catch (Exception e) {
-                        LOGGER.error("update interface - service name map failed.", e);
+                        LOGGER.error("lookup cluster name from servicecomb failed.", e);
                     }
                 }
             }
