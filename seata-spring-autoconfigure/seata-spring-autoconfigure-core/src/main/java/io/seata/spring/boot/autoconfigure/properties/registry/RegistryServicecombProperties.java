@@ -196,19 +196,6 @@ public class RegistryServicecombProperties {
         }
     }
 
-    public static class Credentials{
-        private Account account = new Account();
-
-        public Account getAccount() {
-            return account;
-        }
-
-        public Credentials setAccount(Account account) {
-            this.account = account;
-            return this;
-        }
-    }
-
     @Component
     @ConfigurationProperties(prefix = REGISTRY_SERVICECOMB_SSL_PREFIX)
     public static class Ssl {
