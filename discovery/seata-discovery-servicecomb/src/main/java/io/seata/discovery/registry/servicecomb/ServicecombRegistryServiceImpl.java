@@ -53,7 +53,7 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
     private static final Configuration FILE_CONFIG = ConfigurationFactory.CURRENT_FILE_INSTANCE;
     private static volatile ServicecombRegistryServiceImpl instance;
 
-    private static volatile ServicecombRegistryHelper ServicecombRegistryHelper;
+    private ServicecombRegistryHelper ServicecombRegistryHelper;
 
     private boolean isServer = false;
 
@@ -118,8 +118,6 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
                 if (!CURRENT_ADDRESS_MAP.containsKey(clusterName)) {
                     ServicecombRegistryHelper.setEnableDiscovery(false);
                     ServiceCenterClient client = ServicecombRegistryHelper.initClient();
-                    List<String> clusters = new ArrayList<>();
-                    clusters.add(clusterName);
                     try {
                         List<InetSocketAddress> newAddressList = new ArrayList<>();
                         MicroservicesResponse microservicesResponse = client.getMicroserviceList();

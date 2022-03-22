@@ -58,8 +58,8 @@ public class ServicecombConfiguration extends AbstractConfiguration {
         ConcurrentMap<ConfigurationChangeListener, ConfigurationChangeListener>> CONFIG_LISTENERS_MAP =
             new ConcurrentHashMap<>(MAP_INITIAL_CAPACITY);
     private static volatile ServicecombConfiguration instance;
-    private static volatile Properties seataConfig = new Properties();
-    private static volatile ServicecombConfigurationHelper helper;
+    private Properties seataConfig = new Properties();
+    private ServicecombConfigurationHelper helper;
 
     /**
      * Get instance of ServicecombConfiguration
