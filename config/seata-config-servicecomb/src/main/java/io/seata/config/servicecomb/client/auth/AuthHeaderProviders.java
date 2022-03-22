@@ -82,7 +82,7 @@ public class AuthHeaderProviders {
         return sslProperties;
     }
 
-    private static RequestAuthHeaderProvider
+    public static RequestAuthHeaderProvider
         getRequestAuthHeaderProvider(List<AuthHeaderProvider> authHeaderProviders) {
         return signRequest -> {
             Map<String, String> headers = new HashMap<>(0);

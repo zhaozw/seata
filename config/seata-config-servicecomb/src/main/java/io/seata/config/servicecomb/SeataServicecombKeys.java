@@ -46,6 +46,21 @@ public interface SeataServicecombKeys {
     String KEY_SERVICE_ENVIRONMENT = REGISTRY_KEY_PREFIX + "environment";
 
     /**
+     * registry configuration
+     */
+    String KEY_INSTANCE_ENVIRONMENT = REGISTRY_KEY_PREFIX + "initialStatus";
+
+    String KEY_INSTANCE_PULL_INTERVAL = REGISTRY_KEY_PREFIX + "pull.interval";
+
+    String KEY_INSTANCE_HEALTH_CHECK_INTERVAL = REGISTRY_KEY_PREFIX + "healthcheck.interval";
+
+    String KEY_INSTANCE_HEALTH_CHECK_TIMES = REGISTRY_KEY_PREFIX + "healthcheck.times";
+
+    String KEY_REGISTRY_ADDRESS = REGISTRY_KEY_PREFIX + "address";
+
+    String KEY_REGISTRY_WATCH = REGISTRY_KEY_PREFIX + "watch";
+
+    /**
      * config center configuration
      */
     String KEY_CONFIG_ADDRESSTYPE = CONFIG_KEY_PREFIX + "type";
@@ -114,4 +129,11 @@ public interface SeataServicecombKeys {
     String KEY_SSL_CRL = REGISTRY_KEY_PREFIX + "ssl.crl";
 
     String KEY_SSL_SSL_CUSTOM_CLASS = REGISTRY_KEY_PREFIX + "ssl.sslCustomClass";
+
+    /**
+     * RBAC configuration
+     */
+    String KEY_RBAC_NAME = REGISTRY_KEY_PREFIX + "credentials.account.name";
+
+    String KEY_RBAC_PASSWORD = REGISTRY_KEY_PREFIX + "credentials.account.password";
 }

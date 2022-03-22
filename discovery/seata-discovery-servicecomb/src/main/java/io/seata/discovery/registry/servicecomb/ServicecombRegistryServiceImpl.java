@@ -21,20 +21,23 @@ import io.seata.common.util.NetUtil;
 import io.seata.common.util.StringUtils;
 import io.seata.config.Configuration;
 import io.seata.config.ConfigurationFactory;
+import io.seata.config.servicecomb.SeataServicecombKeys;
+import io.seata.config.servicecomb.client.CommonConfiguration;
+import io.seata.config.servicecomb.client.EventManager;
 import io.seata.discovery.registry.RegistryService;
-import io.seata.discovery.registry.servicecomb.client.CommonConfiguration;
-import io.seata.discovery.registry.servicecomb.client.EventManager;
 import io.seata.discovery.registry.servicecomb.client.ServicecombRegistryHelper;
-import org.apache.servicecomb.service.center.client.*;
-import org.apache.servicecomb.service.center.client.model.*;
+import org.apache.servicecomb.service.center.client.DiscoveryEvents;
+import org.apache.servicecomb.service.center.client.ServiceCenterClient;
+import org.apache.servicecomb.service.center.client.model.MicroserviceInstancesResponse;
+import org.apache.servicecomb.service.center.client.model.MicroservicesResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.*;
-
-import static io.seata.discovery.registry.servicecomb.client.CommonConfiguration.KEY_SERVICE_APPLICATION;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * The type Servicecomb registry service.
@@ -122,7 +125,7 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
                         MicroservicesResponse microservicesResponse = client.getMicroserviceList();
                         microservicesResponse.getServices().forEach(service -> {
                             if (service.getAppId()
-                                .equals(properties.getProperty(KEY_SERVICE_APPLICATION, CommonConfiguration.DEFAULT))
+                                .equals(properties.getProperty(CommonConfiguration.KEY_SERVICE_APPLICATION, CommonConfiguration.DEFAULT))
                                 && service.getServiceName().equals(clusterName)) {
 
                                 MicroserviceInstancesResponse instancesResponse =
