@@ -44,7 +44,7 @@ import java.util.Properties;
  *
  * @author slievrly
  */
-public class ServicecombRegistryServiceImpl implements RegistryService<ServicecombListener> {
+public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServicecombRegistryServiceImpl.class);
 
@@ -102,10 +102,10 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Serviceco
     }
 
     @Override
-    public void subscribe(String cluster, ServicecombListener listener) throws Exception {}
+    public void subscribe(String cluster, Object listener) throws Exception {}
 
     @Override
-    public void unsubscribe(String cluster, ServicecombListener listener) throws Exception {}
+    public void unsubscribe(String cluster, Object listener) throws Exception {}
 
     @Override
     public List<InetSocketAddress> lookup(String key) throws Exception {
