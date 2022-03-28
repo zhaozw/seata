@@ -16,6 +16,8 @@
 
 package io.seata.config.servicecomb.client;
 
+import io.seata.config.Configuration;
+import io.seata.config.servicecomb.SeataServicecombKeys;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.servicecomb.config.kie.client.model.KieAddressManager;
 import org.apache.servicecomb.config.kie.client.model.KieConfiguration;
@@ -23,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.Properties;
 
 /**
  * @author zhaozhongwei22@163.com
@@ -31,45 +32,50 @@ import java.util.Properties;
 public class KieConfigConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(KieConfigConfiguration.class);
 
-    private Properties properties;
+    private Configuration properties;
 
-    public KieConfigConfiguration(Properties properties) {
+    public KieConfigConfiguration(Configuration properties) {
         this.properties = properties;
     }
 
     public KieAddressManager createKieAddressManager() {
-        String address = properties.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESS, CommonConfiguration.DEFAULT_CONFIG_URL);
+        String address =
+            properties.getConfig(SeataServicecombKeys.KEY_CONFIG_ADDRESS, SeataServicecombKeys.DEFAULT_CONFIG_URL);
         if (StringUtils.isEmpty(address)) {
             return null;
         }
-        KieAddressManager kieAddressManager = new KieAddressManager(Arrays.asList(address.split(CommonConfiguration.COMMA)));
+        KieAddressManager kieAddressManager =
+            new KieAddressManager(Arrays.asList(address.split(SeataServicecombKeys.COMMA)));
         LOGGER.info("Using kie, address={}", address);
         return kieAddressManager;
     }
 
     public KieConfiguration createKieConfiguration() {
         KieConfiguration kieConfiguration = new KieConfiguration();
-        kieConfiguration.setAppName(properties.getProperty(CommonConfiguration.KEY_SERVICE_APPLICATION, CommonConfiguration.DEFAULT));
+        kieConfiguration.setAppName(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION, SeataServicecombKeys.DEFAULT));
         kieConfiguration
-            .setServiceName(properties.getProperty(CommonConfiguration.KEY_SERVICE_NAME, CommonConfiguration.DEFAULT));
-        kieConfiguration.setEnvironment(properties.getProperty(CommonConfiguration.KEY_SERVICE_ENVIRONMENT, CommonConfiguration.EMPTY));
-        kieConfiguration.setProject(properties.getProperty(CommonConfiguration.KEY_SERVICE_PROJECT, CommonConfiguration.DEFAULT));
+            .setServiceName(properties.getConfig(SeataServicecombKeys.KEY_SERVICE_NAME, SeataServicecombKeys.DEFAULT));
+        kieConfiguration.setEnvironment(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_ENVIRONMENT, SeataServicecombKeys.EMPTY));
         kieConfiguration
-            .setCustomLabel(properties.getProperty(CommonConfiguration.KEY_SERVICE_KIE_CUSTOMLABEL, CommonConfiguration.PUBLIC));
-        kieConfiguration
-            .setCustomLabelValue(properties.getProperty(CommonConfiguration.KEY_SERVICE_KIE_CUSTOMLABELVALUE, CommonConfiguration.EMPTY));
-        kieConfiguration.setEnableCustomConfig(Boolean
-            .parseBoolean(properties.getProperty(CommonConfiguration.KEY_SERVICE_KIE_ENABLECUSTOMCONFIG, CommonConfiguration.TRUE)));
-        kieConfiguration.setEnableServiceConfig(Boolean
-            .parseBoolean(properties.getProperty(CommonConfiguration.KEY_SERVICE_KIE_ENABLESERVICECONFIG, CommonConfiguration.TRUE)));
-        kieConfiguration.setEnableAppConfig(
-            Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SERVICE_KIE_ENABLEAPPCONFIG, CommonConfiguration.TRUE)));
-        kieConfiguration.setFirstPullRequired(Boolean
-            .parseBoolean(properties.getProperty(CommonConfiguration.KEY_SERVICE_KIE_FRISTPULLREQUIRED, CommonConfiguration.TRUE)));
-        kieConfiguration.setEnableLongPolling(
-            Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SERVICE_ENABLELONGPOLLING, CommonConfiguration.TRUE)));
-        kieConfiguration.setPollingWaitInSeconds(
-            Integer.parseInt(properties.getProperty(CommonConfiguration.KEY_SERVICE_POLLINGWAITSEC, CommonConfiguration.DEFAULT_SERVICE_POLLINGWAITSEC)));
+            .setProject(properties.getConfig(SeataServicecombKeys.KEY_SERVICE_PROJECT, SeataServicecombKeys.DEFAULT));
+        kieConfiguration.setCustomLabel(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_KIE_CUSTOMLABEL, SeataServicecombKeys.PUBLIC));
+        kieConfiguration.setCustomLabelValue(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_KIE_CUSTOMLABELVALUE, SeataServicecombKeys.EMPTY));
+        kieConfiguration.setEnableCustomConfig(Boolean.parseBoolean(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_KIE_ENABLECUSTOMCONFIG, SeataServicecombKeys.TRUE)));
+        kieConfiguration.setEnableServiceConfig(Boolean.parseBoolean(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_KIE_ENABLESERVICECONFIG, SeataServicecombKeys.TRUE)));
+        kieConfiguration.setEnableAppConfig(Boolean.parseBoolean(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_KIE_ENABLEAPPCONFIG, SeataServicecombKeys.TRUE)));
+        kieConfiguration.setFirstPullRequired(Boolean.parseBoolean(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_KIE_FRISTPULLREQUIRED, SeataServicecombKeys.TRUE)));
+        kieConfiguration.setEnableLongPolling(Boolean.parseBoolean(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_ENABLELONGPOLLING, SeataServicecombKeys.TRUE)));
+        kieConfiguration.setPollingWaitInSeconds(Integer.parseInt(properties.getConfig(
+            SeataServicecombKeys.KEY_SERVICE_POLLINGWAITSEC, SeataServicecombKeys.DEFAULT_SERVICE_POLLINGWAITSEC)));
         return kieConfiguration;
     }
 }

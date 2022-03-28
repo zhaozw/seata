@@ -29,7 +29,6 @@ import static io.seata.spring.boot.autoconfigure.StarterConstants.CONFIG_SERVICE
 public class ConfigServicecombProperties {
     private String address;
     private String type;
-    private String dataId;
     private String customLabel;
     private String customLabelValue;
     private String enableCustomConfig;
@@ -97,15 +96,6 @@ public class ConfigServicecombProperties {
 
     public ConfigServicecombProperties setAddress(String address) {
         this.address = address;
-        return this;
-    }
-
-    public String getDataId() {
-        return dataId;
-    }
-
-    public ConfigServicecombProperties setDataId(String dataId) {
-        this.dataId = dataId;
         return this;
     }
 

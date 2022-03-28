@@ -18,19 +18,18 @@ package io.seata.discovery.registry.servicecomb;
 
 import com.google.common.eventbus.Subscribe;
 import io.seata.common.util.NetUtil;
-import io.seata.common.util.StringUtils;
 import io.seata.config.Configuration;
 import io.seata.config.ConfigurationFactory;
 import io.seata.config.servicecomb.SeataServicecombKeys;
-import io.seata.config.servicecomb.client.CommonConfiguration;
 import io.seata.config.servicecomb.client.EventManager;
 import io.seata.discovery.registry.RegistryService;
 import io.seata.discovery.registry.servicecomb.client.ServicecombRegistryHelper;
 import org.apache.servicecomb.service.center.client.DiscoveryEvents;
 import org.apache.servicecomb.service.center.client.RegistrationEvents;
 import org.apache.servicecomb.service.center.client.ServiceCenterClient;
-import org.apache.servicecomb.service.center.client.model.MicroserviceInstancesResponse;
-import org.apache.servicecomb.service.center.client.model.MicroservicesResponse;
+import org.apache.servicecomb.service.center.client.model.Microservice;
+import org.apache.servicecomb.service.center.client.model.MicroserviceInstance;
+import org.apache.servicecomb.service.center.client.model.RegisteredMicroserviceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +37,8 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The type Servicecomb registry service.
@@ -56,13 +56,10 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
 
     private ServicecombRegistryHelper servicecombRegistryHelper;
 
-    private boolean isServer = false;
-
-    private Properties properties;
+    Map<String, String> appId2ServiceidMap = new ConcurrentHashMap<>();
 
     private ServicecombRegistryServiceImpl() throws Exception {
-        properties = createProperties();
-        servicecombRegistryHelper = new ServicecombRegistryHelper(properties, FRAMEWORK_NAME);
+        servicecombRegistryHelper = new ServicecombRegistryHelper(FILE_CONFIG, FRAMEWORK_NAME);
         EventManager.register(this);
     }
 
@@ -89,12 +86,11 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
     @Override
     public void register(InetSocketAddress address) throws Exception {
         NetUtil.validAddress(address);
-        isServer = true;
         servicecombRegistryHelper.register(getEndPoint(address));
     }
 
     private String getEndPoint(InetSocketAddress address) {
-        return CommonConfiguration.REST_PROTOCOL + address.getAddress().getHostAddress() + CommonConfiguration.COLON
+        return SeataServicecombKeys.REST_PROTOCOL + address.getAddress().getHostAddress() + SeataServicecombKeys.COLON
             + address.getPort();
     }
 
@@ -123,27 +119,23 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
                     ServiceCenterClient client = servicecombRegistryHelper.getClient();
                     try {
                         List<InetSocketAddress> newAddressList = new ArrayList<>();
-                        MicroservicesResponse microservicesResponse = client.getMicroserviceList();
-                        microservicesResponse.getServices().forEach(service -> {
-                            if (service.getAppId().equals(properties
-                                .getProperty(CommonConfiguration.KEY_SERVICE_APPLICATION, CommonConfiguration.DEFAULT))
-                                && service.getServiceName().equals(clusterName)) {
+                        setServiceId(clusterName, client);
+                        if (!appId2ServiceidMap.isEmpty()) {
+                            String serverAppId =
+                                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_SERVER_APPLICATION,
+                                    FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION,
+                                        SeataServicecombKeys.DEFAULT));
+                            List<MicroserviceInstance> instances = servicecombRegistryHelper
+                                .pullInstance(appId2ServiceidMap.get(serverAppId), clusterName);
 
-                                MicroserviceInstancesResponse instancesResponse =
-                                    client.getMicroserviceInstanceList(service.getServiceId());
-                                if (instancesResponse.getInstances() != null) {
-                                    instancesResponse.getInstances().forEach(instance -> {
-
-                                        instance.getEndpoints().forEach(endpoint -> {
-
-                                            URI uri = URI.create(endpoint);
-                                            newAddressList.add(new InetSocketAddress(uri.getHost(), uri.getPort()));
-                                        });
-                                    });
-                                }
-                            }
-                        });
-                        CURRENT_ADDRESS_MAP.put(clusterName, newAddressList);
+                            instances.forEach(instance -> {
+                                instance.getEndpoints().forEach(endpoint -> {
+                                    URI uri = URI.create(endpoint);
+                                    newAddressList.add(new InetSocketAddress(uri.getHost(), uri.getPort()));
+                                });
+                            });
+                            CURRENT_ADDRESS_MAP.put(clusterName, newAddressList);
+                        }
                     } catch (Exception e) {
                         LOGGER.error("lookup cluster name from servicecomb failed.", e);
                     }
@@ -151,6 +143,20 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
             }
         }
         return CURRENT_ADDRESS_MAP.computeIfAbsent(clusterName, k -> new ArrayList<>());
+    }
+
+    private void setServiceId(String clusterName, ServiceCenterClient client) {
+        if (appId2ServiceidMap.containsKey(clusterName)) {
+            return;
+        }
+        String serverAppId = FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_SERVER_APPLICATION,
+            FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION, SeataServicecombKeys.DEFAULT));
+        Microservice microservice = createServerMicroservice(serverAppId, clusterName);
+        RegisteredMicroserviceResponse response = client.queryServiceId(microservice);
+        if (response != null) {
+            microservice.setServiceId(response.getServiceId());
+            appId2ServiceidMap.put(clusterName, response.getServiceId());
+        }
     }
 
     @Override
@@ -186,136 +192,23 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
     public void
         onMicroserviceInstanceRegistrationEvent(RegistrationEvents.MicroserviceInstanceRegistrationEvent event) {
         if (event.isSuccess()) {
-            servicecombRegistryHelper.onMicroserviceInstanceRegistrationEvent(event, CURRENT_ADDRESS_MAP.keySet());
+            for (String clusterName : CURRENT_ADDRESS_MAP.keySet()) {
+                setServiceId(clusterName, servicecombRegistryHelper.getClient());
+            }
+            if (!appId2ServiceidMap.isEmpty()) {
+                servicecombRegistryHelper.onMicroserviceInstanceRegistrationEvent(event, appId2ServiceidMap);
+            }
         }
     }
 
-    private Properties createProperties() {
-        Properties properties = new Properties();
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_PROJECT))) {
-            properties.setProperty(CommonConfiguration.KEY_SERVICE_PROJECT,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_PROJECT));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION))) {
-            properties.setProperty(CommonConfiguration.KEY_SERVICE_APPLICATION,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_NAME))) {
-            properties.setProperty(CommonConfiguration.KEY_SERVICE_NAME,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_NAME));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_VERSION))) {
-            properties.setProperty(CommonConfiguration.KEY_SERVICE_VERSION,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_VERSION));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_ENVIRONMENT))) {
-            properties.setProperty(CommonConfiguration.KEY_SERVICE_ENVIRONMENT,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_ENVIRONMENT));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_ENABLED))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_ENABLED,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_ENABLED));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_ENGINE))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_ENGINE,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_ENGINE));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_PROTOCOLS))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_PROTOCOLS,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_PROTOCOLS));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CIPHERS))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_CIPHERS,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CIPHERS));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_AUTH_PEER))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_AUTH_PEER,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_AUTH_PEER));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_HOST))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_CHECKCN_HOST,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_HOST));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_WHITE))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_CHECKCN_WHITE,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_WHITE));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_WHITE_FILE))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_CHECKCN_WHITE_FILE,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_WHITE_FILE));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_ALLOW_RENEGOTIATE))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_ALLOW_RENEGOTIATE,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_ALLOW_RENEGOTIATE));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_STORE_PATH))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_STORE_PATH,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_STORE_PATH));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_KEYSTORE,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE_TYPE))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_KEYSTORE_TYPE,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE_TYPE));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE_VALUE))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_KEYSTORE_VALUE,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE_VALUE));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_TRUST_STORE,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE_TYPE))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_TRUST_STORE_TYPE,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE_TYPE));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE_VALUE))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_TRUST_STORE_VALUE,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE_VALUE));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CRL))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_CRL,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_CRL));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_SSL_CUSTOM_CLASS))) {
-            properties.setProperty(CommonConfiguration.KEY_SSL_SSL_CUSTOM_CLASS,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SSL_SSL_CUSTOM_CLASS));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_ENVIRONMENT))) {
-            properties.setProperty(CommonConfiguration.KEY_INSTANCE_ENVIRONMENT,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_ENVIRONMENT));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_PULL_INTERVAL))) {
-            properties.setProperty(CommonConfiguration.KEY_INSTANCE_PULL_INTERVAL,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_PULL_INTERVAL));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_HEALTH_CHECK_INTERVAL))) {
-            properties.setProperty(CommonConfiguration.KEY_INSTANCE_HEALTH_CHECK_INTERVAL,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_HEALTH_CHECK_INTERVAL));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_HEALTH_CHECK_TIMES))) {
-            properties.setProperty(CommonConfiguration.KEY_INSTANCE_HEALTH_CHECK_TIMES,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_INSTANCE_HEALTH_CHECK_TIMES));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_REGISTRY_ADDRESS))) {
-            properties.setProperty(CommonConfiguration.KEY_REGISTRY_ADDRESS,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_REGISTRY_ADDRESS));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_REGISTRY_WATCH))) {
-            properties.setProperty(CommonConfiguration.KEY_REGISTRY_WATCH,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_REGISTRY_WATCH));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_NAME))) {
-            properties.setProperty(CommonConfiguration.KEY_RBAC_NAME,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_NAME));
-        }
-        if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_PASSWORD))) {
-            properties.setProperty(CommonConfiguration.KEY_RBAC_PASSWORD,
-                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_PASSWORD));
-        }
-        return properties;
+    public Microservice createServerMicroservice(String appId, String serviceName) {
+        Microservice microservice = new Microservice();
+        microservice.setAppId(appId);
+        microservice.setServiceName(serviceName);
+        microservice.setVersion(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_SERVER_APPLICATION_VERSION,
+            FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_VERSION, SeataServicecombKeys.EMPTY)));
+        microservice.setEnvironment(
+            FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_ENVIRONMENT, SeataServicecombKeys.EMPTY));
+        return microservice;
     }
 }

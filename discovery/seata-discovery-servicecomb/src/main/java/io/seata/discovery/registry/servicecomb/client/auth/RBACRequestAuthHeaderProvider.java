@@ -25,7 +25,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import io.seata.config.servicecomb.client.CommonConfiguration;
+import io.seata.config.Configuration;
+import io.seata.config.servicecomb.SeataServicecombKeys;
 import io.seata.config.servicecomb.client.EventManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.servicecomb.foundation.auth.AuthHeaderProvider;
@@ -40,7 +41,6 @@ import javax.ws.rs.core.Response.Status;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -72,9 +72,9 @@ public class RBACRequestAuthHeaderProvider implements AuthHeaderProvider {
 
   private ServiceCenterClient client;
 
-  private Properties properties;
+  private Configuration properties;
 
-  public RBACRequestAuthHeaderProvider(ServiceCenterClient client, Properties properties) {
+  public RBACRequestAuthHeaderProvider(ServiceCenterClient client, Configuration properties) {
     this.client = client;
     this.properties = properties;
     EventManager.getEventBus().register(this);
@@ -131,8 +131,8 @@ public class RBACRequestAuthHeaderProvider implements AuthHeaderProvider {
 
   protected RbacTokenResponse callCreateHeaders() {
     RbacTokenRequest request = new RbacTokenRequest();
-    request.setName(properties.getProperty(CommonConfiguration.KEY_RBAC_NAME));
-    request.setPassword(properties.getProperty(CommonConfiguration.KEY_RBAC_PASSWORD));
+    request.setName(properties.getConfig(SeataServicecombKeys.KEY_RBAC_NAME));
+    request.setPassword(properties.getConfig(SeataServicecombKeys.KEY_RBAC_PASSWORD));
 
     return client.queryToken(request);
   }
@@ -161,13 +161,13 @@ public class RBACRequestAuthHeaderProvider implements AuthHeaderProvider {
   }
 
   private boolean enabled() {
-    return !StringUtils.isEmpty(properties.getProperty(CommonConfiguration.KEY_RBAC_NAME)) && !StringUtils
-        .isEmpty(properties.getProperty(CommonConfiguration.KEY_RBAC_PASSWORD));
+    return !StringUtils.isEmpty(properties.getConfig(SeataServicecombKeys.KEY_RBAC_NAME)) && !StringUtils
+        .isEmpty(properties.getConfig(SeataServicecombKeys.KEY_RBAC_PASSWORD));
   }
 
   private void retryRefresh() {
     if (Status.UNAUTHORIZED.getStatusCode() == lastStatusCode && UN_AUTHORIZED_CODE_HALF_OPEN.equals(lastErrorCode)) {
-      cache.refresh(properties.getProperty(CommonConfiguration.KEY_SERVICE_NAME));
+      cache.refresh(properties.getConfig(SeataServicecombKeys.KEY_SERVICE_NAME));
     }
   }
 }

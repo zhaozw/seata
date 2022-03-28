@@ -39,6 +39,12 @@ public interface SeataServicecombKeys {
 
     String KEY_SERVICE_APPLICATION = REGISTRY_KEY_PREFIX + "application";
 
+    String KEY_SERVICE_SERVER_APPLICATION = REGISTRY_KEY_PREFIX + "serverAppName";
+
+    String KEY_SERVICE_SERVER_APPLICATION_VERSION = REGISTRY_KEY_PREFIX + "serverAppVersion";
+
+    String KEY_SERVICE_ALLOW_CROSS_APP_KEY = REGISTRY_KEY_PREFIX + "allowCrossApp";
+
     String KEY_SERVICE_NAME = REGISTRY_KEY_PREFIX + "name";
 
     String KEY_SERVICE_VERSION = REGISTRY_KEY_PREFIX + "version";
@@ -136,4 +142,34 @@ public interface SeataServicecombKeys {
     String KEY_RBAC_NAME = REGISTRY_KEY_PREFIX + "credentials.account.name";
 
     String KEY_RBAC_PASSWORD = REGISTRY_KEY_PREFIX + "credentials.account.password";
+
+    String CONFIG_ALLOW_CROSS_APP_KEY = "allowCrossApp";
+    /**
+     * default value
+     */
+    String DEFAULT_CIPHERS = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384," + "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256";
+    String TRUE = "true";
+    String FALSE = "false";
+    String DEFAULT = "default";
+    String JDK = "jdk";
+    String TLS = "TLSv1.2";
+    String PKCS12 = "PKCS12";
+    String INTERNAL = "internal";
+    String EMPTY = "";
+    String UTF_8 = "UTF-8";
+    String DEFAULT_VERSION = "1.0.0.0";
+    String DEFAULT_CONFIG_URL = "http://127.0.0.1:30110";
+    String DEFAULT_REGISTRY_URL = "http://127.0.0.1:30100";
+    String COMMA = ",";
+    String PUBLIC = "public";
+    String DEFAULT_SERVICE_POLLINGWAITSEC="10";
+    String KIE = "kie";
+    String SEMICOLON = ";";
+    String COLON = ":";
+    String DEFAULT_INSTANCE_PULL_INTERVAL="15";
+    String UP = "UP";
+    String DEFAULT_INSTANCE_HEALTH_CHECK_INTERVAL = "15";
+    String DEFAULT_INSTANCE_HEALTH_CHECK_TIMES = "3";
+    String REST_PROTOCOL = "rest://";
+    String ALL_VERSION = "0+";
 }

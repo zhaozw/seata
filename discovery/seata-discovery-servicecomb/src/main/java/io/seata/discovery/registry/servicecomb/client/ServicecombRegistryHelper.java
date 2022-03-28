@@ -16,7 +16,9 @@
 
 package io.seata.discovery.registry.servicecomb.client;
 
-import io.seata.config.servicecomb.client.CommonConfiguration;
+import io.seata.common.ConfigurationKeys;
+import io.seata.config.Configuration;
+import io.seata.config.servicecomb.SeataServicecombKeys;
 import io.seata.config.servicecomb.client.EventManager;
 import io.seata.config.servicecomb.client.auth.AuthHeaderProviders;
 import io.seata.discovery.registry.servicecomb.client.auth.RBACRequestAuthHeaderProvider;
@@ -30,13 +32,13 @@ import org.apache.servicecomb.service.center.client.ServiceCenterClient;
 import org.apache.servicecomb.service.center.client.ServiceCenterDiscovery;
 import org.apache.servicecomb.service.center.client.ServiceCenterRegistration;
 import org.apache.servicecomb.service.center.client.ServiceCenterWatch;
+import org.apache.servicecomb.service.center.client.model.FindMicroserviceInstancesResponse;
 import org.apache.servicecomb.service.center.client.model.Framework;
 import org.apache.servicecomb.service.center.client.model.HealthCheck;
 import org.apache.servicecomb.service.center.client.model.HealthCheckMode;
 import org.apache.servicecomb.service.center.client.model.Microservice;
 import org.apache.servicecomb.service.center.client.model.MicroserviceInstance;
 import org.apache.servicecomb.service.center.client.model.MicroserviceInstanceStatus;
-import org.apache.servicecomb.service.center.client.model.RegisteredMicroserviceResponse;
 import org.apache.servicecomb.service.center.client.model.ServiceCenterConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,8 +49,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Properties;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * @author zhaozhongwei22@163.com
@@ -65,7 +66,7 @@ public class ServicecombRegistryHelper {
 
     private ServiceCenterWatch watch;
 
-    private Properties properties;
+    private Configuration properties;
 
     private Microservice microservice;
 
@@ -75,7 +76,7 @@ public class ServicecombRegistryHelper {
 
     private RequestAuthHeaderProvider requestAuthHeaderProvider;
 
-    public ServicecombRegistryHelper(Properties properties, String frameworkName) throws Exception {
+    public ServicecombRegistryHelper(Configuration properties, String frameworkName) throws Exception {
         this.properties = properties;
         this.frameworkName = frameworkName;
         initClient();
@@ -100,10 +101,10 @@ public class ServicecombRegistryHelper {
         serviceCenterRegistration.setHeartBeatInterval(microserviceInstance.getHealthCheck().getInterval());
         serviceCenterRegistration.startRegistration();
 
-        if (CommonConfiguration.TRUE
-            .equals(properties.getProperty(CommonConfiguration.KEY_REGISTRY_WATCH, CommonConfiguration.FALSE))) {
+        if (SeataServicecombKeys.TRUE
+            .equals(properties.getConfig(SeataServicecombKeys.KEY_REGISTRY_WATCH, SeataServicecombKeys.FALSE))) {
             watch = new ServiceCenterWatch(createAddressManager(), AuthHeaderProviders.createSslProperties(properties),
-                getRequestAuthHeaderProvider(client, properties), CommonConfiguration.DEFAULT, Collections.EMPTY_MAP,
+                getRequestAuthHeaderProvider(client, properties), SeataServicecombKeys.DEFAULT, Collections.EMPTY_MAP,
                 EventManager.getEventBus());
         }
     }
@@ -136,7 +137,7 @@ public class ServicecombRegistryHelper {
                         HttpConfiguration.SSLProperties sslProperties =
                             AuthHeaderProviders.createSslProperties(properties);
                         client = new ServiceCenterClient(addressManager, sslProperties,
-                            getRequestAuthHeaderProvider(client, properties), CommonConfiguration.DEFAULT, null);
+                            getRequestAuthHeaderProvider(client, properties), SeataServicecombKeys.DEFAULT, null);
                         microservice = createMicroservice(frameworkName);
 
                     } catch (Exception e) {
@@ -149,34 +150,35 @@ public class ServicecombRegistryHelper {
     }
 
     public void onMicroserviceInstanceRegistrationEvent(RegistrationEvents.MicroserviceInstanceRegistrationEvent event,
-        Set<String> services) {
+        Map<String, String> services) {
         if (event.isSuccess()) {
             if (serviceCenterDiscovery == null) {
                 serviceCenterDiscovery = new ServiceCenterDiscovery(client, EventManager.getEventBus());
-                serviceCenterDiscovery.updateMyselfServiceId(microservice.getServiceId());
                 serviceCenterDiscovery.setPollInterval(
-                    Integer.parseInt(properties.getProperty(CommonConfiguration.KEY_INSTANCE_PULL_INTERVAL,
-                        CommonConfiguration.DEFAULT_INSTANCE_PULL_INTERVAL)));
+                    Integer.parseInt(properties.getConfig(SeataServicecombKeys.KEY_INSTANCE_PULL_INTERVAL,
+                        SeataServicecombKeys.DEFAULT_INSTANCE_PULL_INTERVAL)));
                 serviceCenterDiscovery.startDiscovery();
-                for (String service : services) {
-                    serviceCenterDiscovery
-                        .registerIfNotPresent(new ServiceCenterDiscovery.SubscriptionKey(properties.getProperty(
-                            CommonConfiguration.KEY_SERVICE_APPLICATION, CommonConfiguration.DEFAULT), service));
+                for (String service : services.keySet()) {
+                    serviceCenterDiscovery.updateMyselfServiceId(services.get(service));
+                    serviceCenterDiscovery.registerIfNotPresent(new ServiceCenterDiscovery.SubscriptionKey(
+                        properties.getConfig(SeataServicecombKeys.KEY_SERVICE_SERVER_APPLICATION, properties
+                            .getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION, SeataServicecombKeys.DEFAULT)),
+                        service));
                 }
             } else {
-                serviceCenterDiscovery.updateMyselfServiceId(microservice.getServiceId());
+                // serviceCenterDiscovery.updateMyselfServiceId(microservice.getServiceId());
             }
-            if (StringUtils.isEmpty(microservice.getServiceId())) {
-                RegisteredMicroserviceResponse response = client.queryServiceId(microservice);
-                if (response != null) {
-                    microservice.setServiceId(response.getServiceId());
-                    serviceCenterDiscovery.updateMyselfServiceId(microservice.getServiceId());
-                }
-            }
+            /**
+             * if (StringUtils.isEmpty(microservice.getServiceId())) { RegisteredMicroserviceResponse response =
+             * client.queryServiceId(microservice); if (response != null) {
+             * microservice.setServiceId(response.getServiceId());
+             * serviceCenterDiscovery.updateMyselfServiceId(microservice.getServiceId()); } }
+             */
         }
     }
 
-    public RequestAuthHeaderProvider getRequestAuthHeaderProvider(ServiceCenterClient client, Properties properties) {
+    public RequestAuthHeaderProvider getRequestAuthHeaderProvider(ServiceCenterClient client,
+        Configuration properties) {
         if (requestAuthHeaderProvider == null) {
             List<AuthHeaderProvider> authHeaderProviders = new ArrayList<>();
             authHeaderProviders.add(new RBACRequestAuthHeaderProvider(client, properties));
@@ -187,54 +189,84 @@ public class ServicecombRegistryHelper {
 
     public Microservice createMicroservice(String frameworkName) {
         Microservice microservice = new Microservice();
+
         microservice
-            .setAppId(properties.getProperty(CommonConfiguration.KEY_SERVICE_APPLICATION, CommonConfiguration.DEFAULT));
+            .setAppId(properties.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION, SeataServicecombKeys.DEFAULT));
         microservice
-            .setServiceName(properties.getProperty(CommonConfiguration.KEY_SERVICE_NAME, CommonConfiguration.DEFAULT));
+            .setServiceName(properties.getConfig(SeataServicecombKeys.KEY_SERVICE_NAME, SeataServicecombKeys.DEFAULT));
         microservice.setVersion(
-            properties.getProperty(CommonConfiguration.KEY_SERVICE_VERSION, CommonConfiguration.DEFAULT_VERSION));
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_VERSION, SeataServicecombKeys.DEFAULT_VERSION));
         microservice.setEnvironment(
-            properties.getProperty(CommonConfiguration.KEY_SERVICE_ENVIRONMENT, CommonConfiguration.EMPTY));
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_ENVIRONMENT, SeataServicecombKeys.EMPTY));
         Framework framework = new Framework();
         framework.setName(frameworkName);
         StringBuilder version = new StringBuilder();
-        version.append(frameworkName.toLowerCase(Locale.ROOT)).append(CommonConfiguration.COLON);
+        version.append(frameworkName.toLowerCase(Locale.ROOT)).append(SeataServicecombKeys.COLON);
         if (StringUtils.isEmpty(ServicecombRegistryHelper.class.getPackage().getImplementationVersion())) {
             version.append(ServicecombRegistryHelper.class.getPackage().getImplementationVersion());
         } else {
-            version.append(CommonConfiguration.DEFAULT_VERSION);
+            version.append(SeataServicecombKeys.DEFAULT_VERSION);
         }
-        version.append(CommonConfiguration.SEMICOLON);
+        version.append(SeataServicecombKeys.SEMICOLON);
         framework.setVersion(version.toString());
         microservice.setFramework(framework);
+        if (Boolean.parseBoolean(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_ALLOW_CROSS_APP_KEY, SeataServicecombKeys.FALSE))) {
+            microservice.setAlias(
+                microservice.getAppId() + ConfigurationKeys.FILE_CONFIG_SPLIT_CHAR + microservice.getServiceName());
+            microservice.getProperties().put(SeataServicecombKeys.CONFIG_ALLOW_CROSS_APP_KEY, "true");
+        }
         return microservice;
     }
 
     public MicroserviceInstance createMicroserviceInstance() {
         MicroserviceInstance instance = new MicroserviceInstance();
         instance.setStatus(MicroserviceInstanceStatus
-            .valueOf(properties.getProperty(CommonConfiguration.KEY_INSTANCE_ENVIRONMENT, CommonConfiguration.UP)));
+            .valueOf(properties.getConfig(SeataServicecombKeys.KEY_INSTANCE_ENVIRONMENT, SeataServicecombKeys.UP)));
         HealthCheck healthCheck = new HealthCheck();
         healthCheck.setMode(HealthCheckMode.pull);
         healthCheck
-            .setInterval(Integer.parseInt(properties.getProperty(CommonConfiguration.KEY_INSTANCE_HEALTH_CHECK_INTERVAL,
-                CommonConfiguration.DEFAULT_INSTANCE_HEALTH_CHECK_INTERVAL)));
-        healthCheck
-            .setTimes(Integer.parseInt(properties.getProperty(CommonConfiguration.KEY_INSTANCE_HEALTH_CHECK_TIMES,
-                CommonConfiguration.DEFAULT_INSTANCE_HEALTH_CHECK_TIMES)));
+            .setInterval(Integer.parseInt(properties.getConfig(SeataServicecombKeys.KEY_INSTANCE_HEALTH_CHECK_INTERVAL,
+                SeataServicecombKeys.DEFAULT_INSTANCE_HEALTH_CHECK_INTERVAL)));
+        healthCheck.setTimes(Integer.parseInt(properties.getConfig(SeataServicecombKeys.KEY_INSTANCE_HEALTH_CHECK_TIMES,
+            SeataServicecombKeys.DEFAULT_INSTANCE_HEALTH_CHECK_TIMES)));
         instance.setHealthCheck(healthCheck);
         return instance;
     }
 
     public AddressManager createAddressManager() {
         String address =
-            properties.getProperty(CommonConfiguration.KEY_REGISTRY_ADDRESS, CommonConfiguration.DEFAULT_REGISTRY_URL);
-        String project = properties.getProperty(CommonConfiguration.KEY_SERVICE_PROJECT, CommonConfiguration.DEFAULT);
+            properties.getConfig(SeataServicecombKeys.KEY_REGISTRY_ADDRESS, SeataServicecombKeys.DEFAULT_REGISTRY_URL);
+        String project = properties.getConfig(SeataServicecombKeys.KEY_SERVICE_PROJECT, SeataServicecombKeys.DEFAULT);
         LOGGER.info("Using service center, address={}.", address);
-        return new AddressManager(project, Arrays.asList(address.split(CommonConfiguration.COMMA)));
+        return new AddressManager(project, Arrays.asList(address.split(SeataServicecombKeys.COMMA)));
+    }
+
+    public List<MicroserviceInstance> pullInstance(String appId, String serviceName) {
+        if (!StringUtils.isEmpty(microservice.getServiceId())) {
+            try {
+                FindMicroserviceInstancesResponse instancesResponse = client.findMicroserviceInstance(
+                    microservice.getServiceId(), appId, serviceName, SeataServicecombKeys.ALL_VERSION, null);
+                if (instancesResponse.isModified()) {
+                    List<MicroserviceInstance> instances =
+                        instancesResponse.getMicroserviceInstancesResponse().getInstances() == null
+                            ? Collections.emptyList()
+                            : instancesResponse.getMicroserviceInstancesResponse().getInstances();
+                    return instances;
+                }
+            } catch (Exception e) {
+                LOGGER.error("find service {}#{} instance failed.", appId, serviceName, e);
+            }
+        }
+        // registration not ready
+        return Collections.emptyList();
     }
 
     public ServiceCenterClient getClient() {
         return client;
+    }
+
+    public Microservice getMicroservice() {
+        return microservice;
     }
 }

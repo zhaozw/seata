@@ -16,7 +16,8 @@
 
 package io.seata.config.servicecomb.client.auth;
 
-import io.seata.config.servicecomb.client.CommonConfiguration;
+import io.seata.config.Configuration;
+import io.seata.config.servicecomb.SeataServicecombKeys;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.servicecomb.foundation.auth.AuthHeaderProvider;
 import org.apache.servicecomb.foundation.ssl.SSLCustom;
@@ -30,60 +31,62 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * @author zhaozhongwei22@163.com
  */
 public class AuthHeaderProviders {
 
-    public static RequestAuthHeaderProvider getRequestAuthHeaderProvider(Properties properties) {
+    public static RequestAuthHeaderProvider getRequestAuthHeaderProvider(Configuration properties) {
         List<AuthHeaderProvider> authHeaderProviders = new ArrayList<>();
         return getRequestAuthHeaderProvider(authHeaderProviders);
     }
 
-    public static HttpConfiguration.SSLProperties createSslProperties(Properties properties) {
+    public static HttpConfiguration.SSLProperties createSslProperties(Configuration properties) {
 
         HttpConfiguration.SSLProperties sslProperties = new HttpConfiguration.SSLProperties();
-        sslProperties
-            .setEnabled(Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_ENABLED, CommonConfiguration.FALSE)));
+        sslProperties.setEnabled(Boolean
+            .parseBoolean(properties.getConfig(SeataServicecombKeys.KEY_SSL_ENABLED, SeataServicecombKeys.FALSE)));
         if (sslProperties.isEnabled()) {
             SSLOption option = new SSLOption();
-            option.setEngine(properties.getProperty(CommonConfiguration.KEY_SSL_ENGINE, CommonConfiguration.JDK));
-            option.setProtocols(properties.getProperty(CommonConfiguration.KEY_SSL_PROTOCOLS, CommonConfiguration.TLS));
+            option.setEngine(properties.getConfig(SeataServicecombKeys.KEY_SSL_ENGINE, SeataServicecombKeys.JDK));
+            option.setProtocols(properties.getConfig(SeataServicecombKeys.KEY_SSL_PROTOCOLS, SeataServicecombKeys.TLS));
             option.setCiphers(
-                properties.getProperty(CommonConfiguration.KEY_SSL_CIPHERS, CommonConfiguration.DEFAULT_CIPHERS));
-            option.setAuthPeer(
-                Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_AUTH_PEER, CommonConfiguration.FALSE)));
-            option.setCheckCNHost(
-                Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_HOST, CommonConfiguration.FALSE)));
-            option.setCheckCNWhite(
-                Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_WHITE, CommonConfiguration.FALSE)));
+                properties.getConfig(SeataServicecombKeys.KEY_SSL_CIPHERS, SeataServicecombKeys.DEFAULT_CIPHERS));
+            option.setAuthPeer(Boolean.parseBoolean(
+                properties.getConfig(SeataServicecombKeys.KEY_SSL_AUTH_PEER, SeataServicecombKeys.FALSE)));
+            option.setCheckCNHost(Boolean.parseBoolean(
+                properties.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_HOST, SeataServicecombKeys.FALSE)));
+            option.setCheckCNWhite(Boolean.parseBoolean(
+                properties.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_WHITE, SeataServicecombKeys.FALSE)));
             option.setCheckCNWhiteFile(
-                properties.getProperty(CommonConfiguration.KEY_SSL_CHECKCN_WHITE_FILE, CommonConfiguration.EMPTY));
-            option.setAllowRenegociate(
-                Boolean.parseBoolean(properties.getProperty(CommonConfiguration.KEY_SSL_ALLOW_RENEGOTIATE, CommonConfiguration.FALSE)));
-            option.setStorePath(properties.getProperty(CommonConfiguration.KEY_SSL_STORE_PATH, CommonConfiguration.INTERNAL));
-            option.setKeyStore(properties.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE, CommonConfiguration.EMPTY));
-            option.setKeyStoreType(properties.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE_TYPE, CommonConfiguration.PKCS12));
-            option
-                .setKeyStoreValue(properties.getProperty(CommonConfiguration.KEY_SSL_KEYSTORE_VALUE, CommonConfiguration.EMPTY));
-            option.setTrustStore(properties.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE, CommonConfiguration.EMPTY));
-            option.setTrustStoreType(properties.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE_TYPE, CommonConfiguration.EMPTY));
+                properties.getConfig(SeataServicecombKeys.KEY_SSL_CHECKCN_WHITE_FILE, SeataServicecombKeys.EMPTY));
+            option.setAllowRenegociate(Boolean.parseBoolean(
+                properties.getConfig(SeataServicecombKeys.KEY_SSL_ALLOW_RENEGOTIATE, SeataServicecombKeys.FALSE)));
+            option.setStorePath(
+                properties.getConfig(SeataServicecombKeys.KEY_SSL_STORE_PATH, SeataServicecombKeys.INTERNAL));
+            option.setKeyStore(properties.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE, SeataServicecombKeys.EMPTY));
+            option.setKeyStoreType(
+                properties.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE_TYPE, SeataServicecombKeys.PKCS12));
+            option.setKeyStoreValue(
+                properties.getConfig(SeataServicecombKeys.KEY_SSL_KEYSTORE_VALUE, SeataServicecombKeys.EMPTY));
+            option.setTrustStore(
+                properties.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE, SeataServicecombKeys.EMPTY));
+            option.setTrustStoreType(
+                properties.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE_TYPE, SeataServicecombKeys.EMPTY));
             option.setTrustStoreValue(
-                properties.getProperty(CommonConfiguration.KEY_SSL_TRUST_STORE_VALUE, CommonConfiguration.EMPTY));
-            option.setCrl(properties.getProperty(CommonConfiguration.KEY_SSL_CRL, CommonConfiguration.EMPTY));
+                properties.getConfig(SeataServicecombKeys.KEY_SSL_TRUST_STORE_VALUE, SeataServicecombKeys.EMPTY));
+            option.setCrl(properties.getConfig(SeataServicecombKeys.KEY_SSL_CRL, SeataServicecombKeys.EMPTY));
 
-            SSLCustom sslCustom =
-                SSLCustom.createSSLCustom(properties.getProperty(CommonConfiguration.KEY_SSL_SSL_CUSTOM_CLASS, CommonConfiguration.EMPTY));
+            SSLCustom sslCustom = SSLCustom.createSSLCustom(
+                properties.getConfig(SeataServicecombKeys.KEY_SSL_SSL_CUSTOM_CLASS, SeataServicecombKeys.EMPTY));
             sslProperties.setSslOption(option);
             sslProperties.setSslCustom(sslCustom);
         }
         return sslProperties;
     }
 
-    public static RequestAuthHeaderProvider
-        getRequestAuthHeaderProvider(List<AuthHeaderProvider> authHeaderProviders) {
+    public static RequestAuthHeaderProvider getRequestAuthHeaderProvider(List<AuthHeaderProvider> authHeaderProviders) {
         return signRequest -> {
             Map<String, String> headers = new HashMap<>(0);
             authHeaderProviders.forEach(authHeaderProvider -> headers.putAll(authHeaderProvider.authHeaders()));
@@ -96,7 +99,7 @@ public class AuthHeaderProviders {
             return project;
         }
         try {
-            return URLEncoder.encode(project, CommonConfiguration.UTF_8);
+            return URLEncoder.encode(project, SeataServicecombKeys.UTF_8);
         } catch (UnsupportedEncodingException e) {
             return project;
         }

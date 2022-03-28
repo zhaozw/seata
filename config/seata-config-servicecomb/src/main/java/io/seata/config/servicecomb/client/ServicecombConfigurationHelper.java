@@ -16,6 +16,8 @@
 
 package io.seata.config.servicecomb.client;
 
+import io.seata.config.Configuration;
+import io.seata.config.servicecomb.SeataServicecombKeys;
 import io.seata.config.servicecomb.client.auth.AuthHeaderProviders;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
@@ -36,11 +38,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Properties;
-
-import static io.seata.config.servicecomb.client.CommonConfiguration.DEFAULT_SERVICE_POLLINGWAITSEC;
-import static io.seata.config.servicecomb.client.CommonConfiguration.TRUE;
-
 
 /**
  * @author zhaozhongwei22@163.com
@@ -64,9 +61,9 @@ public class ServicecombConfigurationHelper {
 
     private ConfigConverter configConverter;
 
-    private Properties properties;
+    private Configuration properties;
 
-    public ServicecombConfigurationHelper(Properties properties) {
+    public ServicecombConfigurationHelper(Configuration properties) {
 
         this.properties = properties;
         configConverter = initConfigConverter();
@@ -80,17 +77,19 @@ public class ServicecombConfigurationHelper {
 
     /***/
     private ConfigConverter initConfigConverter() {
-        String fileSources = properties.getProperty(CommonConfiguration.KEY_CONFIG_FILESOURCE, CommonConfiguration.EMPTY);
+        String fileSources =
+            properties.getConfig(SeataServicecombKeys.KEY_CONFIG_FILESOURCE, SeataServicecombKeys.EMPTY);
         if (StringUtils.isEmpty(fileSources)) {
             configConverter = new ConfigConverter(null);
         } else {
-            configConverter = new ConfigConverter(Arrays.asList(fileSources.split(CommonConfiguration.COMMA)));
+            configConverter = new ConfigConverter(Arrays.asList(fileSources.split(SeataServicecombKeys.COMMA)));
         }
         return configConverter;
     }
 
-    private void addConfigCenterProperties(Properties properties) {
-        isKie = CommonConfiguration.KIE.equals(properties.getProperty(CommonConfiguration.KEY_CONFIG_ADDRESSTYPE, CommonConfiguration.KIE));
+    private void addConfigCenterProperties(Configuration properties) {
+        isKie = SeataServicecombKeys.KIE
+            .equals(properties.getConfig(SeataServicecombKeys.KEY_CONFIG_ADDRESSTYPE, SeataServicecombKeys.KIE));
         RequestConfig.Builder config = HttpTransportFactory.defaultRequestConfig();
 
         this.setTimeOut(config);
@@ -105,7 +104,7 @@ public class ServicecombConfigurationHelper {
         }
     }
 
-    private void configCenterClient(Properties properties) {
+    private void configCenterClient(Configuration properties) {
         QueryConfigurationsRequest queryConfigurationsRequest =
             configCenterConfiguration.createQueryConfigurationsRequest();
         AddressManager addressManager = configCenterConfiguration.createAddressManager();
@@ -129,7 +128,7 @@ public class ServicecombConfigurationHelper {
         configCenterManager.startConfigCenterManager();
     }
 
-    private void configKieClient(Properties properties) {
+    private void configKieClient(Configuration properties) {
 
         kieConfiguration = kieConfigConfiguration.createKieConfiguration();
 
@@ -151,10 +150,12 @@ public class ServicecombConfigurationHelper {
         if (!isKie) {
             return;
         }
-        String test = properties.getProperty(CommonConfiguration.KEY_SERVICE_ENABLELONGPOLLING, TRUE);
+        String test =
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_ENABLELONGPOLLING, SeataServicecombKeys.TRUE);
         if (Boolean.parseBoolean(test)) {
             int pollingWaitInSeconds =
-                Integer.valueOf(properties.getProperty(CommonConfiguration.KEY_SERVICE_POLLINGWAITSEC, DEFAULT_SERVICE_POLLINGWAITSEC));
+                Integer.valueOf(properties.getConfig(SeataServicecombKeys.KEY_SERVICE_POLLINGWAITSEC,
+                    SeataServicecombKeys.DEFAULT_SERVICE_POLLINGWAITSEC));
             config.setSocketTimeout(pollingWaitInSeconds * 1000 + 5000);
         }
     }

@@ -29,7 +29,8 @@ import java.util.List;
 public class EventManager {
     private static final String HUAWEI_CLOUD_EVENT_MANAGER = "com.huaweicloud.common.event.EventManager";
     private static final String DUBBO_EVENT_MANAGER = "com.huaweicloud.dubbo.common.EventManager";
-    private static final String SERVICECOMB_EVENT_MANAGER = "org.apache.servicecomb.foundation.common.event.EventManager";
+    private static final String SERVICECOMB_EVENT_MANAGER =
+        "org.apache.servicecomb.foundation.common.event.EventManager";
     private static final String EVENT_BUS = "eventBus";
     private static EventBus eventBus;
     private static List<String> eventBusNames = new ArrayList<>();
