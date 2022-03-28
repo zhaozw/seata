@@ -1,19 +1,18 @@
 /*
-
-  * Copyright (C) 2020-2022 Huawei Technologies Co., Ltd. All rights reserved.
-
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *     http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
+ *  Copyright 1999-2019 Seata.io Group.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 
 package io.seata.discovery.registry.servicecomb;
 
@@ -28,6 +27,7 @@ import io.seata.config.servicecomb.client.EventManager;
 import io.seata.discovery.registry.RegistryService;
 import io.seata.discovery.registry.servicecomb.client.ServicecombRegistryHelper;
 import org.apache.servicecomb.service.center.client.DiscoveryEvents;
+import org.apache.servicecomb.service.center.client.RegistrationEvents;
 import org.apache.servicecomb.service.center.client.ServiceCenterClient;
 import org.apache.servicecomb.service.center.client.model.MicroserviceInstancesResponse;
 import org.apache.servicecomb.service.center.client.model.MicroservicesResponse;
@@ -54,15 +54,15 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
     private static final Configuration FILE_CONFIG = ConfigurationFactory.CURRENT_FILE_INSTANCE;
     private static volatile ServicecombRegistryServiceImpl instance;
 
-    private ServicecombRegistryHelper ServicecombRegistryHelper;
+    private ServicecombRegistryHelper servicecombRegistryHelper;
 
     private boolean isServer = false;
 
     private Properties properties;
 
-    private ServicecombRegistryServiceImpl() {
+    private ServicecombRegistryServiceImpl() throws Exception {
         properties = createProperties();
-        ServicecombRegistryHelper = new ServicecombRegistryHelper(properties, FRAMEWORK_NAME);
+        servicecombRegistryHelper = new ServicecombRegistryHelper(properties, FRAMEWORK_NAME);
         EventManager.register(this);
     }
 
@@ -75,7 +75,11 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
         if (instance == null) {
             synchronized (ServicecombRegistryServiceImpl.class) {
                 if (instance == null) {
-                    instance = new ServicecombRegistryServiceImpl();
+                    try {
+                        instance = new ServicecombRegistryServiceImpl();
+                    } catch (Exception e) {
+                        LOGGER.error("Initializing servicecomb registry failed!", e);
+                    }
                 }
             }
         }
@@ -86,8 +90,7 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
     public void register(InetSocketAddress address) throws Exception {
         NetUtil.validAddress(address);
         isServer = true;
-        ServicecombRegistryHelper.setEnableDiscovery(true);
-        ServicecombRegistryHelper.register(getEndPoint(address));
+        servicecombRegistryHelper.register(getEndPoint(address));
     }
 
     private String getEndPoint(InetSocketAddress address) {
@@ -98,7 +101,7 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
     @Override
     public void unregister(InetSocketAddress address) throws Exception {
         NetUtil.validAddress(address);
-        ServicecombRegistryHelper.unregister(getEndPoint(address));
+        servicecombRegistryHelper.unregister(getEndPoint(address));
         EventManager.unregister(this);
     }
 
@@ -117,14 +120,13 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
         if (!CURRENT_ADDRESS_MAP.containsKey(clusterName)) {
             synchronized (LOCK_OBJ) {
                 if (!CURRENT_ADDRESS_MAP.containsKey(clusterName)) {
-                    ServicecombRegistryHelper.setEnableDiscovery(false);
-                    ServiceCenterClient client = ServicecombRegistryHelper.initClient();
+                    ServiceCenterClient client = servicecombRegistryHelper.getClient();
                     try {
                         List<InetSocketAddress> newAddressList = new ArrayList<>();
                         MicroservicesResponse microservicesResponse = client.getMicroserviceList();
                         microservicesResponse.getServices().forEach(service -> {
-                            if (service.getAppId()
-                                .equals(properties.getProperty(CommonConfiguration.KEY_SERVICE_APPLICATION, CommonConfiguration.DEFAULT))
+                            if (service.getAppId().equals(properties
+                                .getProperty(CommonConfiguration.KEY_SERVICE_APPLICATION, CommonConfiguration.DEFAULT))
                                 && service.getServiceName().equals(clusterName)) {
 
                                 MicroserviceInstancesResponse instancesResponse =
@@ -165,7 +167,7 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
             return;
         }
         if (event.getInstances() == null) {
-            CURRENT_ADDRESS_MAP.remove(event.getAppName());
+            CURRENT_ADDRESS_MAP.remove(event.getServiceName());
         } else {
             List<InetSocketAddress> newAddressList = new ArrayList<>();
             event.getInstances().forEach(instance -> {
@@ -176,7 +178,15 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
                     newAddressList.add(new InetSocketAddress(uri.getHost(), uri.getPort()));
                 });
             });
-            CURRENT_ADDRESS_MAP.put(event.getAppName(), newAddressList);
+            CURRENT_ADDRESS_MAP.put(event.getServiceName(), newAddressList);
+        }
+    }
+
+    @Subscribe
+    public void
+        onMicroserviceInstanceRegistrationEvent(RegistrationEvents.MicroserviceInstanceRegistrationEvent event) {
+        if (event.isSuccess()) {
+            servicecombRegistryHelper.onMicroserviceInstanceRegistrationEvent(event, CURRENT_ADDRESS_MAP.keySet());
         }
     }
 
@@ -300,11 +310,11 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
         }
         if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_NAME))) {
             properties.setProperty(CommonConfiguration.KEY_RBAC_NAME,
-                    FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_NAME));
+                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_NAME));
         }
         if (!StringUtils.isEmpty(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_PASSWORD))) {
             properties.setProperty(CommonConfiguration.KEY_RBAC_PASSWORD,
-                    FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_PASSWORD));
+                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_RBAC_PASSWORD));
         }
         return properties;
     }
