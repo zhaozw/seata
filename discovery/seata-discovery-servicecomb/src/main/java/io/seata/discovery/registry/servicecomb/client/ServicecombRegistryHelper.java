@@ -152,9 +152,9 @@ public class ServicecombRegistryHelper {
             serviceCenterDiscovery
                 .setPollInterval(Integer.parseInt(properties.getConfig(SeataServicecombKeys.KEY_INSTANCE_PULL_INTERVAL,
                     SeataServicecombKeys.DEFAULT_INSTANCE_PULL_INTERVAL)));
+            serviceCenterDiscovery.updateMyselfServiceId(serviceId);
             serviceCenterDiscovery.startDiscovery();
         }
-        serviceCenterDiscovery.updateMyselfServiceId(serviceId);
         serviceCenterDiscovery.registerIfNotPresent(new ServiceCenterDiscovery.SubscriptionKey(appId, serviceName));
     }
 
@@ -217,7 +217,8 @@ public class ServicecombRegistryHelper {
         return new AddressManager(project, Arrays.asList(address.split(SeataServicecombKeys.COMMA)));
     }
 
-    public List<MicroserviceInstance> pullInstance(String appId, String serviceName) {
+    public List<MicroserviceInstance> pullInstance(String appId, String serviceId, String serviceName) {
+        microservice.setServiceId(serviceId);
         if (!StringUtils.isEmpty(microservice.getServiceId())) {
             try {
                 FindMicroserviceInstancesResponse instancesResponse = client.findMicroserviceInstance(

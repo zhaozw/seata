@@ -115,7 +115,6 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
         if (!CURRENT_ADDRESS_MAP.containsKey(clusterName)) {
             synchronized (LOCK_OBJ) {
                 if (!CURRENT_ADDRESS_MAP.containsKey(clusterName)) {
-                    EventManager.register(this);
                     ServiceCenterClient client = servicecombRegistryHelper.getClient();
                     try {
                         List<InetSocketAddress> newAddressList = new ArrayList<>();
@@ -123,10 +122,8 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
                             getServiceGroup(clusterName + ConfigurationKeys.FILE_CONFIG_SPLIT_CHAR + "appName");;
                         setServiceId(serverAppId, clusterName, client);
                         if (appId2ServiceidMap.containsKey(clusterName)) {
-                            servicecombRegistryHelper.startDiscovery(serverAppId, appId2ServiceidMap.get(clusterName),
-                                clusterName);
-                            List<MicroserviceInstance> instances =
-                                servicecombRegistryHelper.pullInstance(serverAppId, clusterName);
+                            List<MicroserviceInstance> instances = servicecombRegistryHelper.pullInstance(serverAppId,
+                                appId2ServiceidMap.get(clusterName), clusterName);
 
                             instances.forEach(instance -> {
                                 instance.getEndpoints().forEach(endpoint -> {
@@ -135,6 +132,9 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
                                 });
                             });
                             CURRENT_ADDRESS_MAP.put(clusterName, newAddressList);
+                            servicecombRegistryHelper.startDiscovery(serverAppId, appId2ServiceidMap.get(clusterName),
+                                clusterName);
+                            EventManager.register(this);
                         }
                     } catch (Exception e) {
                         LOGGER.error("lookup cluster name from servicecomb failed.", e);
@@ -167,9 +167,6 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
      */
     @Subscribe
     public void onInstanceChangedEvent(DiscoveryEvents.InstanceChangedEvent event) {
-        if (!CURRENT_ADDRESS_MAP.containsKey(event.getServiceName())) {
-            return;
-        }
         if (event.getInstances() == null) {
             CURRENT_ADDRESS_MAP.remove(event.getServiceName());
         } else {
