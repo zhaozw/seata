@@ -16,7 +16,6 @@
 
 package io.seata.discovery.registry.servicecomb.client;
 
-import io.seata.common.ConfigurationKeys;
 import io.seata.config.Configuration;
 import io.seata.config.servicecomb.SeataServicecombKeys;
 import io.seata.config.servicecomb.client.EventManager;
@@ -27,7 +26,6 @@ import org.apache.servicecomb.foundation.auth.AuthHeaderProvider;
 import org.apache.servicecomb.http.client.auth.RequestAuthHeaderProvider;
 import org.apache.servicecomb.http.client.common.HttpConfiguration;
 import org.apache.servicecomb.service.center.client.AddressManager;
-import org.apache.servicecomb.service.center.client.RegistrationEvents;
 import org.apache.servicecomb.service.center.client.ServiceCenterClient;
 import org.apache.servicecomb.service.center.client.ServiceCenterDiscovery;
 import org.apache.servicecomb.service.center.client.ServiceCenterRegistration;
@@ -49,7 +47,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * @author zhaozhongwei22@163.com
@@ -149,32 +146,16 @@ public class ServicecombRegistryHelper {
         return client;
     }
 
-    public void onMicroserviceInstanceRegistrationEvent(RegistrationEvents.MicroserviceInstanceRegistrationEvent event,
-        Map<String, String> services) {
-        if (event.isSuccess()) {
-            if (serviceCenterDiscovery == null) {
-                serviceCenterDiscovery = new ServiceCenterDiscovery(client, EventManager.getEventBus());
-                serviceCenterDiscovery.setPollInterval(
-                    Integer.parseInt(properties.getConfig(SeataServicecombKeys.KEY_INSTANCE_PULL_INTERVAL,
-                        SeataServicecombKeys.DEFAULT_INSTANCE_PULL_INTERVAL)));
-                serviceCenterDiscovery.startDiscovery();
-                for (String service : services.keySet()) {
-                    serviceCenterDiscovery.updateMyselfServiceId(services.get(service));
-                    serviceCenterDiscovery.registerIfNotPresent(new ServiceCenterDiscovery.SubscriptionKey(
-                        properties.getConfig(SeataServicecombKeys.KEY_SERVICE_SERVER_APPLICATION, properties
-                            .getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION, SeataServicecombKeys.DEFAULT)),
-                        service));
-                }
-            } else {
-                // serviceCenterDiscovery.updateMyselfServiceId(microservice.getServiceId());
-            }
-            /**
-             * if (StringUtils.isEmpty(microservice.getServiceId())) { RegisteredMicroserviceResponse response =
-             * client.queryServiceId(microservice); if (response != null) {
-             * microservice.setServiceId(response.getServiceId());
-             * serviceCenterDiscovery.updateMyselfServiceId(microservice.getServiceId()); } }
-             */
+    public void startDiscovery(String appId, String serviceId, String serviceName) {
+        if (serviceCenterDiscovery == null) {
+            serviceCenterDiscovery = new ServiceCenterDiscovery(client, EventManager.getEventBus());
+            serviceCenterDiscovery
+                .setPollInterval(Integer.parseInt(properties.getConfig(SeataServicecombKeys.KEY_INSTANCE_PULL_INTERVAL,
+                    SeataServicecombKeys.DEFAULT_INSTANCE_PULL_INTERVAL)));
+            serviceCenterDiscovery.startDiscovery();
         }
+        serviceCenterDiscovery.updateMyselfServiceId(serviceId);
+        serviceCenterDiscovery.registerIfNotPresent(new ServiceCenterDiscovery.SubscriptionKey(appId, serviceName));
     }
 
     public RequestAuthHeaderProvider getRequestAuthHeaderProvider(ServiceCenterClient client,
@@ -210,12 +191,6 @@ public class ServicecombRegistryHelper {
         version.append(SeataServicecombKeys.SEMICOLON);
         framework.setVersion(version.toString());
         microservice.setFramework(framework);
-        if (Boolean.parseBoolean(
-            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_ALLOW_CROSS_APP_KEY, SeataServicecombKeys.FALSE))) {
-            microservice.setAlias(
-                microservice.getAppId() + ConfigurationKeys.FILE_CONFIG_SPLIT_CHAR + microservice.getServiceName());
-            microservice.getProperties().put(SeataServicecombKeys.CONFIG_ALLOW_CROSS_APP_KEY, "true");
-        }
         return microservice;
     }
 

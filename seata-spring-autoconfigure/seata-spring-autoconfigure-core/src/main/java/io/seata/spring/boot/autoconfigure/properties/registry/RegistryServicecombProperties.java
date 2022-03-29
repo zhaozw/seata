@@ -41,36 +41,6 @@ public class RegistryServicecombProperties {
     private String environment;
     private String enableversionAppConfig;
     private String version;
-    private String serverAppName;
-    private String allowCrossApp;
-    private String serverAppVersion;
-
-    public String getServerAppVersion() {
-        return serverAppVersion;
-    }
-
-    public RegistryServicecombProperties setServerAppVersion(String serverAppVersion) {
-        this.serverAppVersion = serverAppVersion;
-        return this;
-    }
-
-    public String getAllowCrossApp() {
-        return allowCrossApp;
-    }
-
-    public RegistryServicecombProperties setAllowCrossApp(String allowCrossApp) {
-        this.allowCrossApp = allowCrossApp;
-        return this;
-    }
-
-    public String getServerAppName() {
-        return serverAppName;
-    }
-
-    public RegistryServicecombProperties setServerAppName(String serverAppName) {
-        this.serverAppName = serverAppName;
-        return this;
-    }
 
     public String getVersion() {
         return version;

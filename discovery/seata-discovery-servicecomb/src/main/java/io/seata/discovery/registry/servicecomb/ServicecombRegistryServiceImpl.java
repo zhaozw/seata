@@ -17,6 +17,7 @@
 package io.seata.discovery.registry.servicecomb;
 
 import com.google.common.eventbus.Subscribe;
+import io.seata.common.ConfigurationKeys;
 import io.seata.common.util.NetUtil;
 import io.seata.config.Configuration;
 import io.seata.config.ConfigurationFactory;
@@ -25,7 +26,6 @@ import io.seata.config.servicecomb.client.EventManager;
 import io.seata.discovery.registry.RegistryService;
 import io.seata.discovery.registry.servicecomb.client.ServicecombRegistryHelper;
 import org.apache.servicecomb.service.center.client.DiscoveryEvents;
-import org.apache.servicecomb.service.center.client.RegistrationEvents;
 import org.apache.servicecomb.service.center.client.ServiceCenterClient;
 import org.apache.servicecomb.service.center.client.model.Microservice;
 import org.apache.servicecomb.service.center.client.model.MicroserviceInstance;
@@ -60,7 +60,6 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
 
     private ServicecombRegistryServiceImpl() throws Exception {
         servicecombRegistryHelper = new ServicecombRegistryHelper(FILE_CONFIG, FRAMEWORK_NAME);
-        EventManager.register(this);
     }
 
     /**
@@ -116,17 +115,18 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
         if (!CURRENT_ADDRESS_MAP.containsKey(clusterName)) {
             synchronized (LOCK_OBJ) {
                 if (!CURRENT_ADDRESS_MAP.containsKey(clusterName)) {
+                    EventManager.register(this);
                     ServiceCenterClient client = servicecombRegistryHelper.getClient();
                     try {
                         List<InetSocketAddress> newAddressList = new ArrayList<>();
-                        setServiceId(clusterName, client);
-                        if (!appId2ServiceidMap.isEmpty()) {
-                            String serverAppId =
-                                FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_SERVER_APPLICATION,
-                                    FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION,
-                                        SeataServicecombKeys.DEFAULT));
-                            List<MicroserviceInstance> instances = servicecombRegistryHelper
-                                .pullInstance(appId2ServiceidMap.get(serverAppId), clusterName);
+                        String serverAppId =
+                            getServiceGroup(clusterName + ConfigurationKeys.FILE_CONFIG_SPLIT_CHAR + "appName");;
+                        setServiceId(serverAppId, clusterName, client);
+                        if (appId2ServiceidMap.containsKey(clusterName)) {
+                            servicecombRegistryHelper.startDiscovery(serverAppId, appId2ServiceidMap.get(clusterName),
+                                clusterName);
+                            List<MicroserviceInstance> instances =
+                                servicecombRegistryHelper.pullInstance(serverAppId, clusterName);
 
                             instances.forEach(instance -> {
                                 instance.getEndpoints().forEach(endpoint -> {
@@ -145,12 +145,10 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
         return CURRENT_ADDRESS_MAP.computeIfAbsent(clusterName, k -> new ArrayList<>());
     }
 
-    private void setServiceId(String clusterName, ServiceCenterClient client) {
+    private void setServiceId(String serverAppId, String clusterName, ServiceCenterClient client) {
         if (appId2ServiceidMap.containsKey(clusterName)) {
             return;
         }
-        String serverAppId = FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_SERVER_APPLICATION,
-            FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION, SeataServicecombKeys.DEFAULT));
         Microservice microservice = createServerMicroservice(serverAppId, clusterName);
         RegisteredMicroserviceResponse response = client.queryServiceId(microservice);
         if (response != null) {
@@ -188,27 +186,14 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
         }
     }
 
-    @Subscribe
-    public void
-        onMicroserviceInstanceRegistrationEvent(RegistrationEvents.MicroserviceInstanceRegistrationEvent event) {
-        if (event.isSuccess()) {
-            for (String clusterName : CURRENT_ADDRESS_MAP.keySet()) {
-                setServiceId(clusterName, servicecombRegistryHelper.getClient());
-            }
-            if (!appId2ServiceidMap.isEmpty()) {
-                servicecombRegistryHelper.onMicroserviceInstanceRegistrationEvent(event, appId2ServiceidMap);
-            }
-        }
-    }
-
     public Microservice createServerMicroservice(String appId, String serviceName) {
         Microservice microservice = new Microservice();
         microservice.setAppId(appId);
         microservice.setServiceName(serviceName);
-        microservice.setVersion(FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_SERVER_APPLICATION_VERSION,
-            FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_VERSION, SeataServicecombKeys.EMPTY)));
-        microservice.setEnvironment(
-            FILE_CONFIG.getConfig(SeataServicecombKeys.KEY_SERVICE_ENVIRONMENT, SeataServicecombKeys.EMPTY));
+        String serverVersion = getServiceGroup(serviceName + ConfigurationKeys.FILE_CONFIG_SPLIT_CHAR + "version");
+        String serverEnv = getServiceGroup(serviceName + ConfigurationKeys.FILE_CONFIG_SPLIT_CHAR + "env");
+        microservice.setVersion(serverVersion);
+        microservice.setEnvironment(serverEnv);
         return microservice;
     }
 }

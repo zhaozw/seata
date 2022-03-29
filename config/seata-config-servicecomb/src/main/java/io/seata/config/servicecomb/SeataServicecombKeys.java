@@ -39,12 +39,6 @@ public interface SeataServicecombKeys {
 
     String KEY_SERVICE_APPLICATION = REGISTRY_KEY_PREFIX + "application";
 
-    String KEY_SERVICE_SERVER_APPLICATION = REGISTRY_KEY_PREFIX + "serverAppName";
-
-    String KEY_SERVICE_SERVER_APPLICATION_VERSION = REGISTRY_KEY_PREFIX + "serverAppVersion";
-
-    String KEY_SERVICE_ALLOW_CROSS_APP_KEY = REGISTRY_KEY_PREFIX + "allowCrossApp";
-
     String KEY_SERVICE_NAME = REGISTRY_KEY_PREFIX + "name";
 
     String KEY_SERVICE_VERSION = REGISTRY_KEY_PREFIX + "version";
