@@ -16,18 +16,15 @@
 
 package io.seata.config.servicecomb.client.auth;
 
+import io.seata.common.loader.EnhancedServiceLoader;
 import io.seata.config.Configuration;
 import io.seata.config.servicecomb.SeataServicecombKeys;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.servicecomb.foundation.auth.AuthHeaderProvider;
 import org.apache.servicecomb.foundation.ssl.SSLCustom;
 import org.apache.servicecomb.foundation.ssl.SSLOption;
 import org.apache.servicecomb.http.client.auth.RequestAuthHeaderProvider;
 import org.apache.servicecomb.http.client.common.HttpConfiguration;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,12 +33,6 @@ import java.util.Map;
  * @author zhaozhongwei22@163.com
  */
 public class AuthHeaderProviders {
-
-    public static RequestAuthHeaderProvider getRequestAuthHeaderProvider(Configuration properties) {
-        List<AuthHeaderProvider> authHeaderProviders = new ArrayList<>();
-        return getRequestAuthHeaderProvider(authHeaderProviders);
-    }
-
     public static HttpConfiguration.SSLProperties createSslProperties(Configuration properties) {
 
         HttpConfiguration.SSLProperties sslProperties = new HttpConfiguration.SSLProperties();
@@ -86,22 +77,12 @@ public class AuthHeaderProviders {
         return sslProperties;
     }
 
-    public static RequestAuthHeaderProvider getRequestAuthHeaderProvider(List<AuthHeaderProvider> authHeaderProviders) {
+    public static RequestAuthHeaderProvider getRequestAuthHeaderProvider() {
+        List<AuthHeaderProvider> authHeaderProviders = EnhancedServiceLoader.loadAll(AuthHeaderProvider.class);
         return signRequest -> {
-            Map<String, String> headers = new HashMap<>(0);
-            authHeaderProviders.forEach(authHeaderProvider -> headers.putAll(authHeaderProvider.authHeaders()));
+            Map<String, String> headers = new HashMap<>();
+            authHeaderProviders.forEach(provider -> headers.putAll(provider.authHeaders()));
             return headers;
         };
-    }
-
-    private static String safeGetProject(String project) {
-        if (StringUtils.isEmpty(project)) {
-            return project;
-        }
-        try {
-            return URLEncoder.encode(project, SeataServicecombKeys.UTF_8);
-        } catch (UnsupportedEncodingException e) {
-            return project;
-        }
     }
 }

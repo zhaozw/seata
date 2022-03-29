@@ -41,6 +41,16 @@ public class RegistryServicecombProperties {
     private String environment;
     private String enableversionAppConfig;
     private String version;
+    private String allowCrossApp;
+
+    public String getAllowCrossApp() {
+        return allowCrossApp;
+    }
+
+    public RegistryServicecombProperties setAllowCrossApp(String allowCrossApp) {
+        this.allowCrossApp = allowCrossApp;
+        return this;
+    }
 
     public String getVersion() {
         return version;

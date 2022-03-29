@@ -19,7 +19,7 @@ package io.seata.config.servicecomb;
 import io.seata.common.ConfigurationKeys;
 
 /**
- * servicecomb properties configuration path
+ * servicecomb properties configuration
  *
  * @author zhaozhongwei22@163.com
  */
@@ -38,6 +38,8 @@ public interface SeataServicecombKeys {
     String KEY_SERVICE_PROJECT = REGISTRY_KEY_PREFIX + "project";
 
     String KEY_SERVICE_APPLICATION = REGISTRY_KEY_PREFIX + "application";
+
+    String KEY_SERVICE_ALLOW_CROSS_APP_KEY = REGISTRY_KEY_PREFIX + "allowCrossApp";
 
     String KEY_SERVICE_NAME = REGISTRY_KEY_PREFIX + "name";
 
@@ -138,6 +140,12 @@ public interface SeataServicecombKeys {
     String KEY_RBAC_PASSWORD = REGISTRY_KEY_PREFIX + "credentials.account.password";
 
     String CONFIG_ALLOW_CROSS_APP_KEY = "allowCrossApp";
+
+    /**
+     * other constant
+     */
+    String APP_SERVICE_SEPRATOR = ".";
+
     /**
      * default value
      */
@@ -164,6 +172,6 @@ public interface SeataServicecombKeys {
     String UP = "UP";
     String DEFAULT_INSTANCE_HEALTH_CHECK_INTERVAL = "15";
     String DEFAULT_INSTANCE_HEALTH_CHECK_TIMES = "3";
-    String REST_PROTOCOL = "rest://";
+    String REST_PROTOCOL = "seata://";
     String ALL_VERSION = "0+";
 }

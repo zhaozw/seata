@@ -25,12 +25,28 @@ import io.seata.config.Configuration;
 import io.seata.config.ConfigurationChangeEvent;
 import io.seata.config.ConfigurationChangeListener;
 import io.seata.config.ConfigurationFactory;
+import io.seata.config.servicecomb.client.ConfigCenterConfiguration;
 import io.seata.config.servicecomb.client.EventManager;
-import io.seata.config.servicecomb.client.ServicecombConfigurationHelper;
+import io.seata.config.servicecomb.client.KieConfigConfiguration;
+import io.seata.config.servicecomb.client.auth.AuthHeaderProviders;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.servicecomb.config.center.client.AddressManager;
+import org.apache.servicecomb.config.center.client.ConfigCenterClient;
+import org.apache.servicecomb.config.center.client.ConfigCenterManager;
+import org.apache.servicecomb.config.center.client.model.QueryConfigurationsRequest;
+import org.apache.servicecomb.config.center.client.model.QueryConfigurationsResponse;
+import org.apache.servicecomb.config.common.ConfigConverter;
 import org.apache.servicecomb.config.common.ConfigurationChangedEvent;
+import org.apache.servicecomb.config.kie.client.KieClient;
+import org.apache.servicecomb.config.kie.client.KieConfigManager;
+import org.apache.servicecomb.config.kie.client.model.KieAddressManager;
+import org.apache.servicecomb.config.kie.client.model.KieConfiguration;
+import org.apache.servicecomb.http.client.common.HttpTransport;
+import org.apache.servicecomb.http.client.common.HttpTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -46,14 +62,30 @@ public class ServicecombConfiguration extends AbstractConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServicecombConfiguration.class);
 
     private static final String CONFIG_TYPE = "servicecomb";
-    private static final Configuration FILE_CONFIG = ConfigurationFactory.CURRENT_FILE_INSTANCE;
     private static final int MAP_INITIAL_CAPACITY = 8;
     private static final ConcurrentMap<String,
         ConcurrentMap<ConfigurationChangeListener, ConfigurationChangeListener>> CONFIG_LISTENERS_MAP =
             new ConcurrentHashMap<>(MAP_INITIAL_CAPACITY);
     private static volatile ServicecombConfiguration instance;
     private Map<String, Object> seataConfig = new HashMap<>();
-    private ServicecombConfigurationHelper helper;
+
+    volatile ConfigCenterManager configCenterManager;
+
+    volatile KieConfigManager kieConfigManager;
+
+    HttpTransport httpTransport;
+
+    private boolean isKie = false;
+
+    private ConfigCenterConfiguration configCenterConfiguration;
+
+    private KieConfigConfiguration kieConfigConfiguration;
+
+    private KieConfiguration kieConfiguration;
+
+    private ConfigConverter configConverter;
+
+    private Configuration properties = ConfigurationFactory.CURRENT_FILE_INSTANCE;
 
     /**
      * Get instance of ServicecombConfiguration
@@ -75,8 +107,13 @@ public class ServicecombConfiguration extends AbstractConfiguration {
      * Instantiates a new Servicecomb configuration.
      */
     private ServicecombConfiguration() {
-        helper = new ServicecombConfigurationHelper(FILE_CONFIG);
-        initSeataConfig(helper.getCurrentData());
+        configConverter = initConfigConverter();
+
+        configCenterConfiguration = new ConfigCenterConfiguration(properties);
+        kieConfigConfiguration = new KieConfigConfiguration(properties);
+
+        initClient(properties);
+        initSeataConfig();
         EventManager.register(this);
     }
 
@@ -176,7 +213,92 @@ public class ServicecombConfiguration extends AbstractConfiguration {
         }
     }
 
-    private void initSeataConfig(Map<String, Object> currentData) {
-        seataConfig.putAll(currentData);
+    private void initSeataConfig() {
+        seataConfig.putAll(configConverter.getCurrentData());
     }
+
+    private void initClient(Configuration properties) {
+        isKie = SeataServicecombKeys.KIE
+            .equals(properties.getConfig(SeataServicecombKeys.KEY_CONFIG_ADDRESSTYPE, SeataServicecombKeys.KIE));
+        RequestConfig.Builder config = HttpTransportFactory.defaultRequestConfig();
+
+        this.setTimeOut(config);
+
+        httpTransport = HttpTransportFactory.createHttpTransport(AuthHeaderProviders.createSslProperties(properties),
+            AuthHeaderProviders.getRequestAuthHeaderProvider(), config.build());
+
+        if (isKie) {
+            configKieClient(properties);
+        } else {
+            configCenterClient(properties);
+        }
+    }
+
+    private ConfigConverter initConfigConverter() {
+        String fileSources =
+            properties.getConfig(SeataServicecombKeys.KEY_CONFIG_FILESOURCE, SeataServicecombKeys.EMPTY);
+        if (org.apache.commons.lang3.StringUtils.isEmpty(fileSources)) {
+            configConverter = new ConfigConverter(null);
+        } else {
+            configConverter = new ConfigConverter(Arrays.asList(fileSources.split(SeataServicecombKeys.COMMA)));
+        }
+        return configConverter;
+    }
+
+    private void configCenterClient(Configuration properties) {
+        QueryConfigurationsRequest queryConfigurationsRequest =
+            configCenterConfiguration.createQueryConfigurationsRequest();
+        AddressManager addressManager = configCenterConfiguration.createAddressManager();
+        if (addressManager == null) {
+            LOGGER.warn("Config center address is not configured and will not enable dynamic config.");
+            return;
+        }
+        ConfigCenterClient configCenterClient = new ConfigCenterClient(addressManager, httpTransport);
+        try {
+            QueryConfigurationsResponse response = configCenterClient.queryConfigurations(queryConfigurationsRequest);
+            if (response.isChanged()) {
+                configConverter.updateData(response.getConfigurations());
+            }
+            queryConfigurationsRequest.setRevision(response.getRevision());
+
+        } catch (Exception e) {
+            LOGGER.warn("set up Servicesomb configuration failed at startup.", e);
+        }
+        configCenterManager = new ConfigCenterManager(configCenterClient, EventManager.getEventBus(), configConverter);
+        configCenterManager.setQueryConfigurationsRequest(queryConfigurationsRequest);
+        configCenterManager.startConfigCenterManager();
+    }
+
+    private void configKieClient(Configuration properties) {
+
+        kieConfiguration = kieConfigConfiguration.createKieConfiguration();
+
+        KieAddressManager kieAddressManager = kieConfigConfiguration.createKieAddressManager();
+        if (kieAddressManager == null) {
+            LOGGER.warn("Kie address is not configured and will not enable dynamic config.");
+            return;
+        }
+
+        KieClient kieClient = new KieClient(kieAddressManager, httpTransport, kieConfiguration);
+
+        kieConfigManager =
+            new KieConfigManager(kieClient, EventManager.getEventBus(), kieConfiguration, configConverter);
+        kieConfigManager.firstPull();
+        kieConfigManager.startConfigKieManager();
+    }
+
+    private void setTimeOut(RequestConfig.Builder config) {
+        if (!isKie) {
+            return;
+        }
+        String test =
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_ENABLELONGPOLLING, SeataServicecombKeys.TRUE);
+        if (Boolean.parseBoolean(test)) {
+            int pollingWaitInSeconds =
+                Integer.valueOf(properties.getConfig(SeataServicecombKeys.KEY_SERVICE_POLLINGWAITSEC,
+                    SeataServicecombKeys.DEFAULT_SERVICE_POLLINGWAITSEC));
+            config.setSocketTimeout(pollingWaitInSeconds * 1000 + 5000);
+        }
+    }
+
 }
