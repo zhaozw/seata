@@ -28,7 +28,6 @@ seata:
     servicecomb:
       address: http://127.0.0.1:30110
       type: kie
-      dataId: seata.properties
       customLabel:
       customLabelValue:
       enableCustomConfig:
@@ -40,13 +39,13 @@ seata:
     type: servicecomb
     servicecomb:
       address: http://127.0.0.1:30100
-      application: cse-v2-test-application
+      application: seata-server
       name: default
       #initialStatus:
       enableLongPolling: true
       pollingWaitInSeconds: 10
       environment:
-      version:
+      version: 1.0.0
       pull:
         interval: 15
       healthcheck:
