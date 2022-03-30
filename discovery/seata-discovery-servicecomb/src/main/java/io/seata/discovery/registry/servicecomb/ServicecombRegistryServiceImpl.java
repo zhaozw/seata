@@ -147,8 +147,8 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
         if (clusterName == null) {
             return null;
         }
+        fetchMicroserviceServiceId();
         if (clusterNameSet.isEmpty()) {
-            fetchMicroserviceServiceId();
             // startDiscovery will check if already started, can call several times
             serviceCenterDiscovery.startDiscovery();
 
