@@ -45,7 +45,8 @@ seata:
       enableLongPolling: true
       pollingWaitInSeconds: 10
       environment:
-      version: 1.0.0
+      version: 1.0.1
+      allowCrossApp: true
       pull:
         interval: 15
       healthcheck:

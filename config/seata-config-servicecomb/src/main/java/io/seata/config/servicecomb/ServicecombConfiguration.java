@@ -25,9 +25,7 @@ import io.seata.config.Configuration;
 import io.seata.config.ConfigurationChangeEvent;
 import io.seata.config.ConfigurationChangeListener;
 import io.seata.config.ConfigurationFactory;
-import io.seata.config.servicecomb.client.ConfigCenterConfiguration;
 import io.seata.config.servicecomb.client.EventManager;
-import io.seata.config.servicecomb.client.KieConfigConfiguration;
 import io.seata.config.servicecomb.client.auth.AuthHeaderProviders;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.servicecomb.config.center.client.AddressManager;
@@ -77,10 +75,6 @@ public class ServicecombConfiguration extends AbstractConfiguration {
 
     private boolean isKie = false;
 
-    private ConfigCenterConfiguration configCenterConfiguration;
-
-    private KieConfigConfiguration kieConfigConfiguration;
-
     private KieConfiguration kieConfiguration;
 
     private ConfigConverter configConverter;
@@ -108,10 +102,6 @@ public class ServicecombConfiguration extends AbstractConfiguration {
      */
     private ServicecombConfiguration() {
         configConverter = initConfigConverter();
-
-        configCenterConfiguration = new ConfigCenterConfiguration(properties);
-        kieConfigConfiguration = new KieConfigConfiguration(properties);
-
         initClient(properties);
         initSeataConfig();
         EventManager.register(this);
@@ -246,9 +236,8 @@ public class ServicecombConfiguration extends AbstractConfiguration {
     }
 
     private void configCenterClient(Configuration properties) {
-        QueryConfigurationsRequest queryConfigurationsRequest =
-            configCenterConfiguration.createQueryConfigurationsRequest();
-        AddressManager addressManager = configCenterConfiguration.createAddressManager();
+        QueryConfigurationsRequest queryConfigurationsRequest = createQueryConfigurationsRequest();
+        AddressManager addressManager = createAddressManager();
         if (addressManager == null) {
             LOGGER.warn("Config center address is not configured and will not enable dynamic config.");
             return;
@@ -271,9 +260,9 @@ public class ServicecombConfiguration extends AbstractConfiguration {
 
     private void configKieClient(Configuration properties) {
 
-        kieConfiguration = kieConfigConfiguration.createKieConfiguration();
+        kieConfiguration = createKieConfiguration();
 
-        KieAddressManager kieAddressManager = kieConfigConfiguration.createKieAddressManager();
+        KieAddressManager kieAddressManager = createKieAddressManager();
         if (kieAddressManager == null) {
             LOGGER.warn("Kie address is not configured and will not enable dynamic config.");
             return;
@@ -301,4 +290,69 @@ public class ServicecombConfiguration extends AbstractConfiguration {
         }
     }
 
+    private AddressManager createAddressManager() {
+        String address = properties.getConfig(SeataServicecombKeys.KEY_CONFIG_ADDRESS, SeataServicecombKeys.EMPTY);
+        if (org.apache.commons.lang3.StringUtils.isEmpty(address)) {
+            return null;
+        }
+        String project = properties.getConfig(SeataServicecombKeys.KEY_SERVICE_PROJECT, SeataServicecombKeys.DEFAULT);
+        LOGGER.info("Using config center, address={}", address);
+        return new AddressManager(project, Arrays.asList(address.split(SeataServicecombKeys.COMMA)));
+    }
+
+    private QueryConfigurationsRequest createQueryConfigurationsRequest() {
+        QueryConfigurationsRequest request = new QueryConfigurationsRequest();
+        request.setApplication(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION, SeataServicecombKeys.DEFAULT));
+        request
+            .setServiceName(properties.getConfig(SeataServicecombKeys.KEY_SERVICE_NAME, SeataServicecombKeys.DEFAULT));
+        request.setVersion(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_VERSION, SeataServicecombKeys.DEFAULT_VERSION));
+        request.setEnvironment(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_ENVIRONMENT, SeataServicecombKeys.EMPTY));
+        // first time revision must be null,not empty string
+        request.setRevision(null);
+        return request;
+    }
+
+    private KieAddressManager createKieAddressManager() {
+        String address =
+            properties.getConfig(SeataServicecombKeys.KEY_CONFIG_ADDRESS, SeataServicecombKeys.DEFAULT_CONFIG_URL);
+        if (org.apache.commons.lang3.StringUtils.isEmpty(address)) {
+            return null;
+        }
+        KieAddressManager kieAddressManager =
+            new KieAddressManager(Arrays.asList(address.split(SeataServicecombKeys.COMMA)));
+        LOGGER.info("Using kie, address={}", address);
+        return kieAddressManager;
+    }
+
+    private KieConfiguration createKieConfiguration() {
+        KieConfiguration kieConfiguration = new KieConfiguration();
+        kieConfiguration.setAppName(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_APPLICATION, SeataServicecombKeys.DEFAULT));
+        kieConfiguration
+            .setServiceName(properties.getConfig(SeataServicecombKeys.KEY_SERVICE_NAME, SeataServicecombKeys.DEFAULT));
+        kieConfiguration.setEnvironment(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_ENVIRONMENT, SeataServicecombKeys.EMPTY));
+        kieConfiguration
+            .setProject(properties.getConfig(SeataServicecombKeys.KEY_SERVICE_PROJECT, SeataServicecombKeys.DEFAULT));
+        kieConfiguration.setCustomLabel(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_KIE_CUSTOMLABEL, SeataServicecombKeys.PUBLIC));
+        kieConfiguration.setCustomLabelValue(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_KIE_CUSTOMLABELVALUE, SeataServicecombKeys.EMPTY));
+        kieConfiguration.setEnableCustomConfig(Boolean.parseBoolean(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_KIE_ENABLECUSTOMCONFIG, SeataServicecombKeys.TRUE)));
+        kieConfiguration.setEnableServiceConfig(Boolean.parseBoolean(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_KIE_ENABLESERVICECONFIG, SeataServicecombKeys.TRUE)));
+        kieConfiguration.setEnableAppConfig(Boolean.parseBoolean(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_KIE_ENABLEAPPCONFIG, SeataServicecombKeys.TRUE)));
+        kieConfiguration.setFirstPullRequired(Boolean.parseBoolean(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_KIE_FRISTPULLREQUIRED, SeataServicecombKeys.TRUE)));
+        kieConfiguration.setEnableLongPolling(Boolean.parseBoolean(
+            properties.getConfig(SeataServicecombKeys.KEY_SERVICE_ENABLELONGPOLLING, SeataServicecombKeys.TRUE)));
+        kieConfiguration.setPollingWaitInSeconds(Integer.parseInt(properties.getConfig(
+            SeataServicecombKeys.KEY_SERVICE_POLLINGWAITSEC, SeataServicecombKeys.DEFAULT_SERVICE_POLLINGWAITSEC)));
+        return kieConfiguration;
+    }
 }

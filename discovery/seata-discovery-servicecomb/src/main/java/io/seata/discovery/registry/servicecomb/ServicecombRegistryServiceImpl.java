@@ -148,7 +148,7 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
             return null;
         }
         if (clusterNameSet.isEmpty()) {
-
+            fetchMicroserviceServiceId();
             // startDiscovery will check if already started, can call several times
             serviceCenterDiscovery.startDiscovery();
 
@@ -169,8 +169,6 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
         SubscriptionKey subscriptionKey = parseMicroserviceName(appId, serviceId);
 
         if (!clusterNameSet.contains(clusterName)) {
-            Microservice microservice = createServerMicroservice(appId, serviceId);
-            serviceCenterDiscovery.updateMyselfServiceId(microservice.getServiceId());
             serviceCenterDiscovery.registerIfNotPresent(subscriptionKey);
             clusterNameSet.add(clusterName);
         }
@@ -303,18 +301,13 @@ public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
         return new SubscriptionKey(appId, serviceId);
     }
 
-    private Microservice createServerMicroservice(String appId, String serviceName) {
-        Microservice microservice = new Microservice();
-        microservice.setAppId(appId);
-        microservice.setServiceName(serviceName);
-        String serverVersion = getServiceGroup(serviceName + ConfigurationKeys.FILE_CONFIG_SPLIT_CHAR + "version");
-        String serverEnv = getServiceGroup(serviceName + ConfigurationKeys.FILE_CONFIG_SPLIT_CHAR + "env");
-        microservice.setVersion(serverVersion);
-        microservice.setEnvironment(serverEnv);
-        RegisteredMicroserviceResponse response = serviceCenterClient.queryServiceId(microservice);
-        if (response != null) {
-            microservice.setServiceId(response.getServiceId());
+    private void fetchMicroserviceServiceId() {
+        if (StringUtils.isEmpty(microservice.getServiceId())) {
+            RegisteredMicroserviceResponse response = serviceCenterClient.queryServiceId(microservice);
+            if (response != null) {
+                microservice.setServiceId(response.getServiceId());
+                serviceCenterDiscovery.updateMyselfServiceId(microservice.getServiceId());
+            }
         }
-        return microservice;
     }
 }
