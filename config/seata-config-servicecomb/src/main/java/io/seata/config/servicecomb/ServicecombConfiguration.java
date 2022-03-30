@@ -45,7 +45,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -65,7 +64,6 @@ public class ServicecombConfiguration extends AbstractConfiguration {
         ConcurrentMap<ConfigurationChangeListener, ConfigurationChangeListener>> CONFIG_LISTENERS_MAP =
             new ConcurrentHashMap<>(MAP_INITIAL_CAPACITY);
     private static volatile ServicecombConfiguration instance;
-    private Map<String, Object> seataConfig = new HashMap<>();
 
     volatile ConfigCenterManager configCenterManager;
 
@@ -103,13 +101,12 @@ public class ServicecombConfiguration extends AbstractConfiguration {
     private ServicecombConfiguration() {
         configConverter = initConfigConverter();
         initClient(properties);
-        initSeataConfig();
         EventManager.register(this);
     }
 
     @Override
     public String getLatestConfig(String dataId, String defaultValue, long timeoutMills) {
-        Object value = seataConfig.get(dataId);
+        Object value = configConverter.getCurrentData().get(dataId);
         return value == null ? defaultValue : value.toString();
     }
 
@@ -169,11 +166,6 @@ public class ServicecombConfiguration extends AbstractConfiguration {
 
     @Subscribe
     public void onConfigurationChangedEvent(ConfigurationChangedEvent event) {
-        if (event.getDeleted() != null) {
-            for (String key : event.getDeleted().keySet()) {
-                seataConfig.remove(key);
-            }
-        }
         updateSeataConfig(event.getAdded(), false);
         updateSeataConfig(event.getUpdated(), false);
         updateSeataConfig(event.getDeleted(), true);
@@ -201,10 +193,6 @@ public class ServicecombConfiguration extends AbstractConfiguration {
             }
 
         }
-    }
-
-    private void initSeataConfig() {
-        seataConfig.putAll(configConverter.getCurrentData());
     }
 
     private void initClient(Configuration properties) {

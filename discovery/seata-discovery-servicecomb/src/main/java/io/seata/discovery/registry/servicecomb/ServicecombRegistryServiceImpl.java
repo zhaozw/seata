@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 /**
  * The type Servicecomb registry service.
  *
- * @author slievrly
+ * @author zhaozhongwei22@163.com
  */
 public class ServicecombRegistryServiceImpl implements RegistryService<Object> {
 
