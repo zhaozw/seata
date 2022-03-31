@@ -33,8 +33,8 @@ import static io.seata.spring.boot.autoconfigure.StarterConstants.REGISTRY_SERVI
 public class RegistryServicecombProperties {
     private String address;
     private String project;
-    private String name;
-    private String application;
+    private String serviceName;
+    private String appName;
     private String initialStatus;
     private String enableLongPolling;
     private String pollingWaitInSeconds;
@@ -124,22 +124,20 @@ public class RegistryServicecombProperties {
         return this;
     }
 
-    public String getName() {
-        return name;
+    public String getServiceName() {
+        return serviceName;
     }
 
-    public RegistryServicecombProperties setName(String name) {
-        this.name = name;
-        return this;
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
-    public String getApplication() {
-        return application;
+    public String getAppName() {
+        return appName;
     }
 
-    public RegistryServicecombProperties setApplication(String application) {
-        this.application = application;
-        return this;
+    public void setAppName(String appName) {
+        this.appName = appName;
     }
 
     @Component

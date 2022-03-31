@@ -37,11 +37,11 @@ public interface SeataServicecombKeys {
      */
     String KEY_SERVICE_PROJECT = REGISTRY_KEY_PREFIX + "project";
 
-    String KEY_SERVICE_APPLICATION = REGISTRY_KEY_PREFIX + "application";
+    String KEY_SERVICE_APPLICATION = REGISTRY_KEY_PREFIX + "appName";
 
     String KEY_SERVICE_ALLOW_CROSS_APP_KEY = REGISTRY_KEY_PREFIX + "allowCrossApp";
 
-    String KEY_SERVICE_NAME = REGISTRY_KEY_PREFIX + "name";
+    String KEY_SERVICE_NAME = REGISTRY_KEY_PREFIX + "serviceName";
 
     String KEY_SERVICE_VERSION = REGISTRY_KEY_PREFIX + "version";
 
